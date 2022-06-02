@@ -2,9 +2,11 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,22 +21,8 @@ public class UserController {
     private final Map<Integer, User> users = new HashMap<>();
 
     @PostMapping
-    public User create(@RequestBody User user) {
+    public User create(@RequestBody User user) throws ValidationException {
         log.info("POST /users {}", user);
-
-        /*if (user.getLogin().isEmpty() || user.getLogin().length() == 0 || user.getLogin().contains(" ")) {
-            throw new ValidationException("Логин не может быть пустым или содержать пробел");
-        }
-        if (user.getEmail().isEmpty() || user.getEmail().length() == 0 || !user.getEmail().contains("@")) {
-            throw new ValidationException("Email должен содержать @ и не быть пустым");
-        }
-        if (user.getName().isEmpty() || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        if (user.getBirthday() !=null && user.getBirthday().isAfter(LocalDate.now())) {
-           throw new ValidationException("Дата рождения не может быть в будущем");
-        }
-        */
 
         if (validate(user)) {
             users.put(user.getId(), user);
@@ -44,7 +32,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@RequestBody User user) {
+    public User update(@RequestBody User user) throws UnknownUserException, ValidationException {
         log.info("PUT /users {}", user);
        if (users.containsKey(user.getId())) {
            if (validate(user)) {
@@ -63,14 +51,14 @@ public class UserController {
         return new ArrayList<>(users.values());
     }
 
-    public static boolean validate(User user) {
-        if (user.getLogin() == null || user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
+    public static boolean validate(User user) throws ValidationException {
+        if (!StringUtils.hasText(user.getLogin()) || user.getLogin().contains(" ")) {
             throw new ValidationException("Логин не может быть пустым или содержать пробел");
         }
-        if (user.getEmail() == null || user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
+        if (!StringUtils.hasText(user.getEmail()) || !user.getEmail().contains("@")) {
             throw new ValidationException("Email должен содержать @ и не быть пустым");
         }
-        if (user.getName() == null || user.getName().isEmpty()) {
+        if (!StringUtils.hasText(user.getName())) {
             user.setName(user.getLogin());
         }
         if (user.getBirthday() !=null && user.getBirthday().isAfter(LocalDate.now())) {

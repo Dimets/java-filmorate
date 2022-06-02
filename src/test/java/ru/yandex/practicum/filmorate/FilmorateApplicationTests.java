@@ -15,7 +15,7 @@ import java.time.LocalDate;
 class FilmorateApplicationTests {
 
 	@Test
-	void shouldSuccessValidateFilm() {
+	void shouldSuccessValidateFilm() throws ValidationException {
 		Film film = new Film("film name","film description", LocalDate.now(),100);
 		Assertions.assertTrue(FilmController.validate(film));
 	}
@@ -31,7 +31,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void shouldValidateFilmDescriptionLength() {
+	void shouldValidateFilmDescriptionLength() throws ValidationException {
 		String description199 = "111111111111111111111111111111111111111111111111111111111111111111111111111111111111" +
 				"1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" +
 				"111111111111111";
@@ -56,7 +56,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void shouldValidateFilmReleaseDate() {
+	void shouldValidateFilmReleaseDate() throws ValidationException {
 		Film film = new Film("film name","film description",
 				LocalDate.of(1895,12,27),100);
 		Exception exception = Assertions.assertThrows(ValidationException.class, () -> FilmController.validate(film));
@@ -70,7 +70,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void shouldValidateFilmDuration() {
+	void shouldValidateFilmDuration() throws ValidationException {
 		Film film = new Film("Film name",null, LocalDate.now(),-1);
 		Exception exception = Assertions.assertThrows(ValidationException.class, () -> FilmController.validate(film));
 		Assertions.assertEquals("Продолжительность фильма должна быть положительной",exception.getMessage());
@@ -85,7 +85,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void shouldSuccessValidateUser() {
+	void shouldSuccessValidateUser() throws ValidationException {
 		User user = new User("12345@yandex.ru", "Userlogin", "User name", LocalDate.now());
 		Assertions.assertTrue(UserController.validate(user));
 	}
@@ -121,7 +121,7 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void shouldSetEmptyNameWithLoginValue() {
+	void shouldSetEmptyNameWithLoginValue() throws ValidationException {
 		User user = new User("12345@yandex.ru", "login", null, LocalDate.now());
 		UserController.validate(user);
 		Assertions.assertEquals("login", user.getName());

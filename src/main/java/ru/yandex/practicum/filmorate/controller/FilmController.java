@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -19,7 +20,7 @@ public class FilmController {
     private final Map<Integer, Film> films = new HashMap<>();
 
     @PostMapping
-    public Film create(@RequestBody Film film) {
+    public Film create(@RequestBody Film film) throws ValidationException {
         log.info("POST /films {}", film);
 
         if (validate(film)) {
@@ -30,7 +31,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@RequestBody Film film) {
+    public Film update(@RequestBody Film film) throws UnknownFilmException, ValidationException {
         log.info("PUT /films {}", film);
         if (films.containsKey(film.getId())) {
             if (validate(film)) {
@@ -49,11 +50,11 @@ public class FilmController {
         return new ArrayList<>(films.values());
     }
 
-    public static boolean validate(Film film) {
-        if (film.getName() == null || film.getName().isEmpty() ) {
+    public static boolean validate(Film film) throws ValidationException {
+        if (!StringUtils.hasText(film.getName())) {
             throw new ValidationException("Название фильма не может быть пустым");
         }
-        if (film.getDescription() != null && !film.getDescription().isEmpty() && film.getDescription().length() > 200) {
+        if (StringUtils.hasText(film.getDescription()) && film.getDescription().length() > 200) {
             throw  new ValidationException("Максимальная длина описания — 200 символов");
         }
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
