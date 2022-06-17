@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -72,5 +73,12 @@ public class UserController {
     public Set<Integer> findFriends(@PathVariable("userId") int userId) throws UnknownUserException {
         log.info("GET /friends");
         return userService.getUserFriends(userId);
+    }
+
+    @GetMapping("{userId}/friends/common/{otherUserId}")
+    public Set<Integer> findCommonFriends(@PathVariable("userId") int userId,
+                                          @PathVariable("otherUserId") int otherUserId) throws UnknownUserException {
+        log.info("GET /common friends");
+        return userService.getCommonFriends(userId, otherUserId);
     }
 }
