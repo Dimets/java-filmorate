@@ -1,11 +1,14 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,52 +20,43 @@ import java.util.Map;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @PostMapping
     public Film create(@RequestBody Film film) throws ValidationException {
         log.info("POST /films {}", film);
-
-        if (validate(film)) {
-            films.put(film.getId(), film);
-            log.info("Фильм создан: {}", film);
-        }
+        filmService.create(film);
         return film;
     }
 
     @PutMapping
-    public Film update(@RequestBody Film film) throws UnknownFilmException, ValidationException {
+    public Film update(@RequestBody Film film) throws ValidationException, UnknownFilmException {
         log.info("PUT /films {}", film);
-        if (films.containsKey(film.getId())) {
-            if (validate(film)) {
-                films.put(film.getId(), film);
-            }
-        } else {
-            throw new UnknownFilmException("Фильма с таким id не существует!");
-        }
-        log.info("Фильм изменен: {}", film);
+        filmService.update(film);
         return film;
+    }
+
+    @DeleteMapping("/{filmId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable("filmId") int filmId) throws UnknownFilmException {
+        log.info("DELETE /films/" + filmId);
+        filmService.deleteById(filmId);
     }
 
     @GetMapping
     public List<Film> findAll() {
         log.info("GET /films");
-        return new ArrayList<>(films.values());
+        return filmService.findAll();
     }
 
-    public static boolean validate(Film film) throws ValidationException {
-        if (!StringUtils.hasText(film.getName())) {
-            throw new ValidationException("Название фильма не может быть пустым");
-        }
-        if (StringUtils.hasText(film.getDescription()) && film.getDescription().length() > 200) {
-            throw  new ValidationException("Максимальная длина описания — 200 символов");
-        }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
-        }
-        if (film.getDuration() < 1) {
-            throw new ValidationException("Продолжительность фильма должна быть положительной");
-        }
-        return true;
+    @GetMapping("/{filmId}")
+    public Film findFilm(@PathVariable("filmId") int filmId) throws UnknownFilmException {
+        log.info("GET /films/" + filmId);
+        return filmService.findById(filmId);
     }
 }
