@@ -103,6 +103,7 @@ public class UserService {
     }
 
     public Set<Integer> getUserFriends(int userId) throws UnknownUserException {
+        log.info(String.format("Список друзей пользователя id=%d: {}", userId,  findById(userId).getFriends()));
         return findById(userId).getFriends();
     }
 

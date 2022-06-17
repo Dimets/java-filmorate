@@ -18,10 +18,12 @@ import java.util.List;
 @Slf4j
 public class FilmService {
     private final InMemoryFilmStorage inMemoryFilmStorage;
+    private final UserService userService;
 
     @Autowired
-    public FilmService(InMemoryFilmStorage inMemoryFilmStorage) {
+    public FilmService(InMemoryFilmStorage inMemoryFilmStorage, UserService userService) {
         this.inMemoryFilmStorage = inMemoryFilmStorage;
+        this.userService = userService;
     }
 
     public Film create(Film film) throws ValidationException {
@@ -65,6 +67,12 @@ public class FilmService {
         }
     }
 
+    public void addLike(int filmId, int userId) throws UnknownFilmException, UnknownUserException {
+        if (inMemoryFilmStorage.getFilmById(filmId) == null) {
+            throw new UnknownFilmException(String.format("Фильм с id=%d не существует", filmId));
+        }
+        if (userService.findById(userId) )
+    }
 
     void validateFilm(Film film) throws ValidationException {
         if (!StringUtils.hasText(film.getName())) {

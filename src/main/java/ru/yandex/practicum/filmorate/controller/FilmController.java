@@ -59,4 +59,11 @@ public class FilmController {
         log.info("GET /films/" + filmId);
         return filmService.findById(filmId);
     }
+
+    @PutMapping("/{filmId}/like/{userId}")
+    public void addLike(@PathVariable("filmId") int filmId, @PathVariable("userId") int userId)
+            throws UnknownFilmException {
+        log.info("PUT /like");
+        filmService.addLike(filmId, userId);
+    }
 }
