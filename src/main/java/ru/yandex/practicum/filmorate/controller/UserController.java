@@ -1,70 +1,84 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.util.StringUtils;
+import ru.yandex.practicum.filmorate.exception.FriendException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private final Map<Integer, User> users = new HashMap<>();
+    private final UserService userService;
 
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
     @PostMapping
     public User create(@RequestBody User user) throws ValidationException {
         log.info("POST /users {}", user);
-
-        if (validate(user)) {
-            users.put(user.getId(), user);
-            log.info("Пользователь создан: {}", user);
-        }
-        return user;
+        return userService.create(user);
     }
 
-    @PutMapping
-    public User update(@RequestBody User user) throws UnknownUserException, ValidationException {
+    @PutMapping()
+    public User update(@RequestBody User user) throws ValidationException, UnknownUserException {
         log.info("PUT /users {}", user);
-       if (users.containsKey(user.getId())) {
-           if (validate(user)) {
-               users.put(user.getId(), user);
-           }
-       } else {
-            throw new UnknownUserException("Пользователя с таким id не существует!");
-       }
-        log.info("Пользователь изменен: {}", user);
-        return user;
+        return userService.update(user);
+    }
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable("userId") int userid) throws UnknownUserException {
+        log.info("DELETE /users/" + userid);
+        userService.deleteById(userid);
     }
 
     @GetMapping
     public List<User> findAll() {
         log.info("GET /users");
-        return new ArrayList<>(users.values());
+        return userService.findAll();
+    }
+    @GetMapping("/{userId}")
+    public User findUser(@PathVariable("userId") int userId) throws UnknownUserException {
+        log.info("GET /users/" + userId);
+        return userService.findById(userId);
     }
 
-    public static boolean validate(User user) throws ValidationException {
-        if (!StringUtils.hasText(user.getLogin()) || user.getLogin().contains(" ")) {
-            throw new ValidationException("Логин не может быть пустым или содержать пробел");
-        }
-        if (!StringUtils.hasText(user.getEmail()) || !user.getEmail().contains("@")) {
-            throw new ValidationException("Email должен содержать @ и не быть пустым");
-        }
-        if (!StringUtils.hasText(user.getName())) {
-            user.setName(user.getLogin());
-        }
-        if (user.getBirthday() !=null && user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("Дата рождения не может быть в будущем");
-        }
-        return true;
+    @PutMapping("/{userId}/friends/{friendId}")
+    public void addFriend(@PathVariable("userId") int userId, @PathVariable("friendId") int friendId)
+            throws UnknownUserException, FriendException {
+        log.info("PUT /friends");
+        userService.addFriend(userId, friendId);
     }
 
+    @DeleteMapping("{userId}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFriend(@PathVariable("userId") int userId, @PathVariable("friendId") int friendId)
+            throws UnknownUserException, FriendException {
+        log.info("DELETE /friends");
+        userService.deleteFriend(userId, friendId);
+    }
+
+    @GetMapping("{userId}/friends")
+    public List<User> findFriends(@PathVariable("userId") int userId) throws UnknownUserException {
+        log.info("GET /friends");
+        return userService.getUserFriends(userId);
+    }
+
+    @GetMapping("{userId}/friends/common/{otherUserId}")
+    public List<User> findCommonFriends(@PathVariable("userId") int userId,
+                                          @PathVariable("otherUserId") int otherUserId) throws UnknownUserException {
+        log.info("GET /common friends");
+        return userService.getCommonFriends(userId, otherUserId);
+    }
 }
