@@ -84,7 +84,7 @@ public class FilmService {
         return popularFilms.subList(0, count > popularFilms.size() ? popularFilms.size() : count);
     }
 
-    void validateFilm(Film film) throws ValidationException {
+    public void validateFilm(Film film) throws ValidationException {
         if (!StringUtils.hasText(film.getName())) {
             throw new ValidationException("Название фильма не может быть пустым");
         }

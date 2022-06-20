@@ -1,6 +1,8 @@
-package ru.yandex.practicum.filmorate;
+package test.ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.FilmController;
@@ -8,16 +10,55 @@ import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
 @SpringBootTest
 class FilmorateApplicationTests {
+	InMemoryFilmStorage inMemoryFilmStorage;
+	InMemoryUserStorage inMemoryUserStorage;
+	UserService userService;
+	FilmService filmService
+
+	@BeforeEach
+	public void init() {
+		inMemoryFilmStorage = new InMemoryFilmStorage();
+		inMemoryUserStorage = new InMemoryUserStorage();
+		userService = new UserService(inMemoryUserStorage);
+		filmService = new FilmService(inMemoryFilmStorage, userService);
+	}
+	@Test
+	void shouldCreateUser() throws ValidationException {
+		User user = new User("12345@yandex.ru", "Login", "User name", LocalDate.now());
+		userService.create(user);
+		Assertions.assertEquals(1, userService.findAll().size());
+		Assertions.assertEquals("12345@yandex.ru", userService.findById(1).getEmail());
+	}
+
+	@Test
+	void shouldValidateUserEmail() {
+		User user = new User(null, "Userlogin", "User name", LocalDate.now());
+		Exception exception = Assertions.assertThrows(ValidationException.class, () -> userService.create(user));
+		Assertions.assertEquals("Email должен содержать @ и не быть пустым",exception.getMessage());
+
+		user.setEmail("");
+		exception = Assertions.assertThrows(ValidationException.class, () -> UserController.validate(user));
+		Assertions.assertEquals("Email должен содержать @ и не быть пустым",exception.getMessage());
+
+		user.setEmail("email yandex");
+		exception = Assertions.assertThrows(ValidationException.class, () -> UserController.validate(user));
+		Assertions.assertEquals("Email должен содержать @ и не быть пустым",exception.getMessage());
+	}
+
 
 	@Test
 	void shouldSuccessValidateFilm() throws ValidationException {
 		Film film = new Film("film name","film description", LocalDate.now(),100);
-		Assertions.assertTrue(FilmController.validate(film));
+		Assertions.assertTrue(FilmService.validateFilm(film));
 	}
 
 	@Test
@@ -90,20 +131,6 @@ class FilmorateApplicationTests {
 		Assertions.assertTrue(UserController.validate(user));
 	}
 
-	@Test
-	void shouldValidateUserEmail() {
-		User user = new User(null, "Userlogin", "User name", LocalDate.now());
-		Exception exception = Assertions.assertThrows(ValidationException.class, () -> UserController.validate(user));
-		Assertions.assertEquals("Email должен содержать @ и не быть пустым",exception.getMessage());
-
-		user.setEmail("");
-		exception = Assertions.assertThrows(ValidationException.class, () -> UserController.validate(user));
-		Assertions.assertEquals("Email должен содержать @ и не быть пустым",exception.getMessage());
-
-		user.setEmail("email yandex");
-		exception = Assertions.assertThrows(ValidationException.class, () -> UserController.validate(user));
-		Assertions.assertEquals("Email должен содержать @ и не быть пустым",exception.getMessage());
-	}
 
 	@Test
 	void shouldValidateUserLogin() {
