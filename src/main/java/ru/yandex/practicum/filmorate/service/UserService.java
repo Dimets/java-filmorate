@@ -11,12 +11,12 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @Slf4j
+
 public class UserService {
     private final InMemoryUserStorage inMemoryUserStorage;
 
@@ -27,8 +27,10 @@ public class UserService {
 
     public User create(User user) throws ValidationException {
         validateUser(user);
+        user.setId(User.getNextId());
         inMemoryUserStorage.createUser(user);
-        log.info("Пользователь создан: {}", user);
+        log.info("Пользователь создан: {}", user.getId());
+        log.debug("Пользователь создан: {}", user);
         return user;
     }
 
@@ -36,7 +38,8 @@ public class UserService {
         validateUser(user);
         if (inMemoryUserStorage.getUserById(user.getId()) != null) {
             inMemoryUserStorage.updateUser(user);
-            log.info("Пользователь изменен: {}", user);
+            log.info("Пользователь изменен: {}", user.getId());
+            log.debug("Пользователь изменен: {}", user);
             return user;
         } else {
             throw new UnknownUserException(String.format("Пользователь с id=%d не существует", user.getId()));
@@ -87,28 +90,36 @@ public class UserService {
             throw new FriendException((String.format("Пользователь с id=%d уже есть в списке друзей пользователя" +
                             " с id=%d", friendId, userId)));
         }
-        getUserFriends(userId).add(friendId);
+        findById(userId).getFriends().add(friendId);
         log.info(String.format("Пользователь с id=%d добавлен в друзья к пользователю с id=%d:", friendId, userId));
+        findById(friendId).getFriends().add(userId);
+        log.info(String.format("Пользователь с id=%d добавлен в друзья к пользователю с id=%d:", userId, friendId));
     }
 
     public void deleteFriend(int userId, int friendId) throws UnknownUserException, FriendException {
         checkExistUserAndFriend(userId, friendId);
-        if (getUserFriends(userId).contains(friendId)) {
-            getUserFriends(userId).remove(friendId);
+        if (findById(userId).getFriends().contains(friendId)) {
+            findById(userId).getFriends().remove(friendId);
             log.info(String.format("Пользователь с id=%d удален из друзей пользователя с id=%d:", friendId, userId));
+            findById(friendId).getFriends().remove(userId);
+            log.info(String.format("Пользователь с id=%d удален из друзей пользователя с id=%d:", userId,friendId));
         } else {
             throw new FriendException((String.format("Пользователя с id=%d нет в списке друзей пользователя" +
                     " с id=%d", friendId, userId)));
         }
     }
 
-    public Set<Integer> getUserFriends(int userId) throws UnknownUserException {
-        log.info(String.format("Список друзей пользователя id=%d: {}", userId,  findById(userId).getFriends()));
-        return findById(userId).getFriends();
+    public List<User> getUserFriends(int userId) throws UnknownUserException {
+        List<User> userFriends = new ArrayList<>();
+        for (int i : findById(userId).getFriends()) {
+            userFriends.add(findById(i));
+        }
+        log.info(String.format("Список друзей пользователя id=%d: {}", userId, userFriends));
+        return userFriends;
     }
 
-    public Set<Integer> getCommonFriends(int userId, int otherUserId) throws UnknownUserException {
-        Set<Integer> result = new HashSet<>();
+    public List<User> getCommonFriends(int userId, int otherUserId) throws UnknownUserException {
+        List<User> result = new ArrayList<>();
         result.addAll(getUserFriends(userId));
         result.retainAll(getUserFriends(otherUserId));
         return result;

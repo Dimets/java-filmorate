@@ -70,13 +70,13 @@ public class UserController {
     }
 
     @GetMapping("{userId}/friends")
-    public Set<Integer> findFriends(@PathVariable("userId") int userId) throws UnknownUserException {
+    public List<User> findFriends(@PathVariable("userId") int userId) throws UnknownUserException {
         log.info("GET /friends");
         return userService.getUserFriends(userId);
     }
 
     @GetMapping("{userId}/friends/common/{otherUserId}")
-    public Set<Integer> findCommonFriends(@PathVariable("userId") int userId,
+    public List<User> findCommonFriends(@PathVariable("userId") int userId,
                                           @PathVariable("otherUserId") int otherUserId) throws UnknownUserException {
         log.info("GET /common friends");
         return userService.getCommonFriends(userId, otherUserId);
