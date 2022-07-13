@@ -38,6 +38,7 @@ create table IF NOT EXISTS FILM
     DESCRIPTION   CHARACTER VARYING,
     RELEASE_DATE  DATE,
     DURATION      INTEGER,
+    RATE          INTEGER,
     RATING_MPA_ID INTEGER,
     constraint FILM_PK
         primary key (ID),
@@ -53,9 +54,11 @@ create table IF NOT EXISTS FILM_GENRE
     FILM_ID  INTEGER,
     GENRE_ID INTEGER,
     constraint FILM_GENRE_FILM_ID_FK
-        foreign key (FILM_ID) references FILM,
+        foreign key (FILM_ID) references FILM
+            on delete cascade,
     constraint FILM_GENRE_GENRE_ID_FK
         foreign key (GENRE_ID) references GENRE
+            on delete cascade
 );
 
 create unique index IF NOT EXISTS RATING_MPA_ID_UINDEX
@@ -77,9 +80,11 @@ create table IF NOT EXISTS FILM_LIKE
     FILM_ID INTEGER,
     USER_ID INTEGER,
     constraint FILM_LIKE_FILM_ID_FK
-        foreign key (FILM_ID) references FILM,
+        foreign key (FILM_ID) references FILM
+            on delete cascade,
     constraint FILM_LIKE_USERS_ID_FK
         foreign key (USER_ID) references USERS
+            on delete cascade
 );
 
 create table IF NOT EXISTS FRIENDS
@@ -90,9 +95,11 @@ create table IF NOT EXISTS FRIENDS
     constraint FRIENDS_FRIENDS_STATUS_ID_FK
         foreign key (STATUS_ID) references FRIENDS_STATUS,
     constraint FRIENDS_USERS_ID_FK
-        foreign key (USER_ID) references USERS,
+        foreign key (USER_ID) references USERS
+            on delete cascade,
     constraint FRIENDS_USERS_ID_FK_2
         foreign key (FRIEND_ID) references USERS
+            on delete cascade
 );
 
 create unique index IF NOT EXISTS USERS_ID_UINDEX
