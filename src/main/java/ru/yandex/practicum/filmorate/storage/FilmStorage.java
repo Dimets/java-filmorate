@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FilmStorage {
     Film createFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
@@ -14,7 +15,10 @@ public interface FilmStorage {
 
     void deleteFilm(int id);
 
-    Film getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
+    Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
 
     List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException;
+
+    List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
+
 }

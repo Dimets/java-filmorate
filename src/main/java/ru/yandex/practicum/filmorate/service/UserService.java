@@ -35,14 +35,10 @@ public class UserService {
 
     public User update(User user) throws ValidationException, UnknownUserException {
         validateUser(user);
-        if (userStorage.getUserById(user.getId()) != null) {
-            userStorage.updateUser(user);
-            log.info("Пользователь изменен: {}", user.getId());
-            log.debug("Пользователь изменен: {}", user);
-            return user;
-        } else {
-            throw new UnknownUserException(String.format("Пользователь с id=%d не существует", user.getId()));
-        }
+        userStorage.getUserById(user.getId()).orElseThrow(() -> new UnknownUserException(
+                String.format("Пользователь с id=%d не существует", user.getId())));
+
+        return userStorage.updateUser(user).get();
     }
 
     public void deleteById(int id) throws UnknownUserException {
@@ -60,13 +56,8 @@ public class UserService {
     }
 
     public User findById(int id) throws UnknownUserException {
-        if (userStorage.getUserById(id) != null) {
-            log.info(String.format("Пользователь с id=%d найден", id));
-            log.debug(String.format("Пользователь с id=%d найден:", id) + userStorage.getUserById(id));
-            return userStorage.getUserById(id);
-        } else {
-           throw new UnknownUserException(String.format("Пользователь с id=%d не существует", id));
-        }
+        return userStorage.getUserById(id).orElseThrow(() -> new UnknownUserException(
+                String.format("Пользователь с id=%d не существует", id)));
     }
 
     public void validateUser(User user) throws ValidationException {
@@ -124,12 +115,18 @@ public class UserService {
     }
 
     public void checkExistUserAndFriend(int userId, int friendId) throws UnknownUserException {
+        userStorage.getUserById(userId).orElseThrow(() -> new UnknownUserException(
+                String.format("Пользователь с id=%d не существует", userId)));
+
+        userStorage.getUserById(friendId).orElseThrow(() -> new UnknownUserException(
+                String.format("Пользователь с id=%d не существует", friendId)));
+/*
         if (userStorage.getUserById(userId) == null) {
             throw new UnknownUserException(String.format("Пользователь с id=%d не существует", userId));
         }
         if (userStorage.getUserById(friendId) == null) {
             throw new UnknownUserException((String.format("Пользователь с id=%d не существует", friendId)));
-        }
+        }*/
     }
 
 }

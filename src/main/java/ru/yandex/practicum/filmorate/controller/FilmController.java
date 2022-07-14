@@ -76,6 +76,7 @@ public class FilmController {
     @GetMapping("/popular")
     public List<Film> getPopular(@RequestParam(value = "count", defaultValue = "10") Integer count)
             throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+        log.info("GET /popular count = {}", count);
         return filmService.findPopular(count);
     }
 }

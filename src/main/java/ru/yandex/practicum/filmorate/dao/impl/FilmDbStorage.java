@@ -61,7 +61,7 @@ public class FilmDbStorage implements FilmStorage {
         } else {
             film.setGenres(Collections.emptySet());
         }
-        return getFilmById(keyHolder.getKey().intValue());
+        return getFilmById(keyHolder.getKey().intValue()).get();
     }
 
     @Override
@@ -87,7 +87,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.setGenres(Collections.emptySet());
             }
         }
-        return getFilmById(film.getId());
+        return getFilmById(film.getId()).get();
     }
 
     @Override
@@ -97,12 +97,12 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+    public Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("select * from film where id = ?", id);
         Set<User> userLikesSet = new HashSet<>();
 
         if (filmRows.next()) {
-            Film film = new Film(
+             Film film = new Film(
                     filmRows.getString("name"),
                     filmRows.getString("description"),
                     mpaService.findById(filmRows.getInt("rating_mpa_id")).get(),
@@ -118,21 +118,35 @@ public class FilmDbStorage implements FilmStorage {
                 userLikesSet.add(userService.findById(i));
             }
             film.setLikes(userLikesSet);
-
-            return film;
+            return Optional.of(film);
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
     public List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("select * from film");
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM");
 
         List<Film> filmList = new ArrayList<>();
 
         while (filmRows.next()) {
-            filmList.add(getFilmById(filmRows.getInt("id")));
+            filmList.add(getFilmById(filmRows.getInt("id")).get());
         }
         return filmList;
     }
+
+    @Override
+    public List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
+                "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
+                "ORDER BY likes_count DESC LIMIT ?", count);
+
+        List<Film> filmList = new ArrayList<>();
+
+        while (filmRows.next()) {
+            filmList.add(getFilmById(filmRows.getInt("id")).get());
+        }
+        return filmList;
+    }
+
 }

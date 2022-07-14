@@ -38,15 +38,21 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testFindUserById() {
-		User user = userStorage.getUserById(1);
+		Optional<User> userOptional = userStorage.getUserById(1);
 
-		Assertions.assertEquals(1, user.getId());
+		assertThat(userOptional)
+				.isPresent()
+				.hasValueSatisfying(user ->
+						assertThat(user).hasFieldOrPropertyWithValue("id", 1)
+				);
 	}
 
 	@Test
 	public void testFindUnknownUserById() {
-		User user = userStorage.getUserById(-1);
-		Assertions.assertNull(user);
+		Optional<User> userOptional = userStorage.getUserById(-1);
+
+		assertThat(userOptional)
+				.isNotPresent();
 	}
 
 	@Test
@@ -67,14 +73,18 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testUpdateUser() {
-		User user = userStorage.getUserById(1);
+		Optional<User> user = userStorage.getUserById(1);
 		User updatedUser = new User("new_user@email.ru", "LoginNewUpdate", "NameNew",
 				LocalDate.now().minusYears(10));
 		updatedUser.setId(1);
 
-		User updateUser = userStorage.updateUser(updatedUser);
+		Optional<User> updateUser = userStorage.updateUser(updatedUser);
 
-		Assertions.assertEquals("LoginNewUpdate", updateUser.getLogin());
+		assertThat(updateUser)
+				.isPresent()
+				.hasValueSatisfying(u ->
+						assertThat(u).hasFieldOrPropertyWithValue("login", "LoginNewUpdate")
+				);
 	}
 
 	@Test
@@ -86,7 +96,7 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testGetFilmById() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
-		Optional<Film> filmOptional = Optional.of(filmStorage.getFilmById(1));
+		Optional<Film> filmOptional = filmStorage.getFilmById(1);
 
 		assertThat(filmOptional)
 				.isPresent()
@@ -117,7 +127,7 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testUpdateFilm() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
-		Film film = filmStorage.getFilmById(1);
+		Optional<Film> optionalFilm = filmStorage.getFilmById(1);
 		Genre genre = genreDao.findGenreById(1).get();
 		Film updatedFilm = new Film("Updated film", "New desc", mpaDao.findMpaById(1).get(),
 				LocalDate.now().minusYears(10),100, 1, Set.of(genre));
@@ -126,6 +136,7 @@ class FilmoRateApplicationTests {
 		Film updateFilm =filmStorage.updateFilm(updatedFilm);
 
 		Assertions.assertEquals("Updated film", updateFilm.getName());
+
 	}
 
 	@Test
@@ -174,20 +185,20 @@ class FilmoRateApplicationTests {
 
 	@Test
 	public void testDeleteFilmGenre() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
-		Film film = filmStorage.getFilmById(1);
-		filmGenreDao.deleteFilmGenres(film);
+		Optional<Film> film = filmStorage.getFilmById(1);
+		filmGenreDao.deleteFilmGenres(film.get());
 		Assertions.assertEquals(0, filmGenreDao.getFilmGenres(1).size());
 	}
 
 	@Test
 	public void testSetFilmGenre() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
-		Film film = filmStorage.getFilmById(2);
+		Optional<Film> film = filmStorage.getFilmById(2);
 		Set<Genre> genres = filmGenreDao.getFilmGenres(2);
 
-		filmGenreDao.deleteFilmGenres(film);
+		filmGenreDao.deleteFilmGenres(film.get());
 		Assertions.assertEquals(0, filmGenreDao.getFilmGenres(2).size());
 
-		filmGenreDao.setFilmGenres(genres, film);
+		filmGenreDao.setFilmGenres(genres, film.get());
 		Assertions.assertEquals(2, filmGenreDao.getFilmGenres(2).size());
 	}
 

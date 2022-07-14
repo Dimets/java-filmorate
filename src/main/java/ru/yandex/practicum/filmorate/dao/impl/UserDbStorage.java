@@ -12,6 +12,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component("userDbStorage")
 public class UserDbStorage implements UserStorage {
@@ -36,11 +37,11 @@ public class UserDbStorage implements UserStorage {
             return stmt;
         }, keyHolder);
         user.setId(keyHolder.getKey().intValue());
-        return getUserById(keyHolder.getKey().intValue());
+        return getUserById(keyHolder.getKey().intValue()).get();
     }
 
     @Override
-    public User updateUser(User user) {
+    public Optional<User> updateUser(User user) {
         String sqlQuery = "update users set email = ?, login = ?, name = ?, birthday = ?  where id = ?";
             jdbcTemplate.update(sqlQuery
                     , user.getEmail()
@@ -58,7 +59,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(int id) {
+    public Optional<User> getUserById(int id) {
         SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from users where id = ?", id);
 
         if (userRows.next()) {
@@ -69,9 +70,9 @@ public class UserDbStorage implements UserStorage {
                     userRows.getDate("birthday").toLocalDate()
             );
             user.setId(userRows.getInt("id"));
-            return user;
+            return Optional.of(user);
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

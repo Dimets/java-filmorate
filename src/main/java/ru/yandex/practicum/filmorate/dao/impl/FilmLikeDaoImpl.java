@@ -32,6 +32,7 @@ public class FilmLikeDaoImpl implements FilmLikeDao {
     @Override
     public void addFilmLike(int filmId, int userId) {
         String sql = "insert into film_like (film_id, user_id) values (?, ?)";
+        log.info("sql={}", sql);
         jdbcTemplate.update(sql, filmId, userId);
     }
 
