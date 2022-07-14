@@ -4,9 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -24,41 +22,45 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@RequestBody Film film) throws ValidationException {
+    public Film create(@RequestBody Film film) throws ValidationException, UnknownFilmException, UnknownMpaException,
+            UnknownGenreException, UnknownUserException {
         log.info("POST /films {}", film);
         filmService.create(film);
-        return film;
+        return filmService.findById(film.getId());
     }
 
     @PutMapping
-    public Film update(@RequestBody Film film) throws ValidationException, UnknownFilmException {
-        log.info("PUT /films {}", film);
-        filmService.update(film);
-        return film;
+    public Film update(@RequestBody Film film) throws ValidationException, UnknownFilmException,
+            UnknownMpaException, UnknownGenreException, UnknownUserException {
+        log.info("PUT /films id={}", film.getId());
+        log.debug("PUT /films {}", film);
+        return filmService.update(film);
     }
 
     @DeleteMapping("/{filmId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable("filmId") int filmId) throws UnknownFilmException {
+    public void delete(@PathVariable("filmId") int filmId) throws UnknownFilmException,
+            UnknownMpaException, UnknownGenreException, UnknownUserException {
         log.info("DELETE /films/" + filmId);
         filmService.deleteById(filmId);
     }
 
     @GetMapping
-    public List<Film> findAll() {
+    public List<Film> findAll() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
         log.info("GET /films");
         return filmService.findAll();
     }
 
     @GetMapping("/{filmId}")
-    public Film findFilm(@PathVariable("filmId") int filmId) throws UnknownFilmException {
+    public Film findFilm(@PathVariable("filmId") int filmId) throws UnknownFilmException, UnknownMpaException,
+            UnknownGenreException, UnknownUserException {
         log.info("GET /films/" + filmId);
         return filmService.findById(filmId);
     }
 
     @PutMapping("/{filmId}/like/{userId}")
     public void addLike(@PathVariable("filmId") int filmId, @PathVariable("userId") int userId)
-            throws UnknownFilmException, UnknownUserException {
+            throws UnknownFilmException, UnknownUserException, UnknownMpaException, UnknownGenreException {
         log.info("PUT /" + filmId + "/like/" + userId);
         filmService.addLike(filmId, userId);
     }
@@ -66,13 +68,15 @@ public class FilmController {
     @DeleteMapping("/{filmId}/like/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLike(@PathVariable("filmId") int filmId, @PathVariable("userId") int userId)
-            throws UnknownFilmException, UnknownUserException {
+            throws UnknownFilmException, UnknownUserException, UnknownMpaException, UnknownGenreException {
         log.info("DELETE /" + filmId + "/like/" + userId);
         filmService.deleteLike(filmId, userId);
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(value = "count", defaultValue = "10") Integer count) {
+    public List<Film> getPopular(@RequestParam(value = "count", defaultValue = "10") Integer count)
+            throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+        log.info("GET /popular count = {}", count);
         return filmService.findPopular(count);
     }
 }

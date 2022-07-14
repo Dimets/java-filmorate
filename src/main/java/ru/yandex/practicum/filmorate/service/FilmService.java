@@ -2,13 +2,14 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.dao.FilmLikeDao;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -18,69 +19,63 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class FilmService {
-    private final InMemoryFilmStorage inMemoryFilmStorage;
+    @Autowired
+    @Qualifier("filmDbStorage")
+    private FilmStorage filmStorage;
     private final UserService userService;
+    private final FilmLikeDao filmLikeDao;
 
-    public Film create(Film film) throws ValidationException {
+
+    public Film create(Film film) throws ValidationException, UnknownMpaException,
+            UnknownGenreException, UnknownUserException {
         validateFilm(film);
-        film.setId(Film.getNextId());
-        inMemoryFilmStorage.createFilm(film);
-        log.info("Фильм создан: {}", film.getId());
-        log.debug("Фильм создан: {}", film);
-        return film;
+        return filmStorage.createFilm(film);
     }
 
-    public Film update(Film film) throws ValidationException, UnknownFilmException {
+    public Film update(Film film) throws ValidationException, UnknownFilmException, UnknownMpaException,
+            UnknownGenreException, UnknownUserException {
         validateFilm(film);
-        if (inMemoryFilmStorage.getFilmById(film.getId()) != null) {
-            inMemoryFilmStorage.updateFilm(film);
-            log.info("Фильм изменен: {}", film.getId());
-            log.debug("Фильм изменен: {}", film);
-            return film;
-        } else {
-            throw new UnknownFilmException(String.format("Фильм с id=%d не существует", film.getId()));
-        }
+        filmStorage.getFilmById(film.getId()).orElseThrow(() -> new UnknownFilmException(
+                String.format("Фильм с id=%d не существует", film.getId())));
+        log.info("Фильм с id={} изменен", film.getId());
+        return filmStorage.updateFilm(film);
     }
 
-    public void deleteById(int id) throws UnknownFilmException {
-        if (inMemoryFilmStorage.getFilmById(id) != null) {
-            log.info(String.format("Фильм с id=%d удален:", id) + inMemoryFilmStorage.getFilmById(id));
-            inMemoryFilmStorage.deleteFilm(id);
-        } else {
-            throw new UnknownFilmException(String.format("Фильм с id=%d не существует", id));
-        }
+    public void deleteById(int id) throws UnknownFilmException, UnknownMpaException, UnknownGenreException,
+            UnknownUserException {
+        filmStorage.getFilmById(id).orElseThrow(() -> new UnknownFilmException(
+                String.format("Фильм с id=%d не существует", id)));
+        log.info("Фильм с id={} удален", id);
+        filmStorage.deleteFilm(id);
     }
 
-    public List<Film> findAll() {
-        log.info("Список фильмов получен: " + inMemoryFilmStorage.getAllFilms());
-        return inMemoryFilmStorage.getAllFilms();
+    public List<Film> findAll() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+        log.info("Список фильмов получен size=: " + filmStorage.getAllFilms().size());
+        return filmStorage.getAllFilms();
     }
 
-    public Film findById(int id) throws UnknownFilmException {
-        if (inMemoryFilmStorage.getFilmById(id) != null) {
-            log.info(String.format("Фильм с id=%d найден:", id) + inMemoryFilmStorage.getFilmById(id));
-            return inMemoryFilmStorage.getFilmById(id);
-        } else {
-            throw new UnknownFilmException(String.format("Фильм с id=%d не существует", id));
-        }
+    public Film findById(int id) throws UnknownFilmException, UnknownMpaException, UnknownGenreException,
+            UnknownUserException {
+        return filmStorage.getFilmById(id).orElseThrow(() -> new UnknownFilmException(
+                String.format("Фильм с id=%d не существует", id)));
     }
 
-    public void addLike(int filmId, int userId) throws UnknownFilmException, UnknownUserException {
+    public void addLike(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
+            UnknownMpaException, UnknownGenreException {
         checkExistFilmAndUser(filmId, userId);
-        inMemoryFilmStorage.getFilmById(filmId).getLikes().add(userId);
+        filmLikeDao.addFilmLike(filmId,userId);
         log.info(String.format("Лайк пользователя id=%d добавлен к фильму id=%d", userId, filmId));
     }
 
-    public void deleteLike (int filmId, int userId) throws UnknownFilmException, UnknownUserException {
+    public void deleteLike (int filmId, int userId) throws UnknownFilmException, UnknownUserException,
+            UnknownMpaException, UnknownGenreException {
         checkExistFilmAndUser(filmId, userId);
-        inMemoryFilmStorage.getFilmById(filmId).getLikes().remove(userId);
+        filmLikeDao.deleteFilmLike(filmId,userId);
         log.info(String.format("Лайк пользователя id=%d удален у фильма id=%d", userId, filmId));
     }
 
-    public List<Film> findPopular(int count) {
-        List<Film> popularFilms = inMemoryFilmStorage.getAllFilms();
-        Collections.sort(popularFilms, (o1, o2) -> o2.getLikes().size() - o1.getLikes().size());
-        return popularFilms.subList(0, count > popularFilms.size() ? popularFilms.size() : count);
+    public List<Film> findPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+        return filmStorage.getPopular(count);
     }
 
     public void validateFilm(Film film) throws ValidationException {
@@ -98,13 +93,10 @@ public class FilmService {
         }
     }
 
-    void checkExistFilmAndUser(int filmId, int userId) throws UnknownFilmException, UnknownUserException {
-        if (inMemoryFilmStorage.getFilmById(filmId) == null) {
-            throw new UnknownFilmException(String.format("Фильм с id=%d не существует", filmId));
-        }
-        if (userService.findById(userId) == null) {
-            throw new UnknownUserException(String.format("Пользователь с id=%d не существует", userId));
-        }
+    void checkExistFilmAndUser(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
+            UnknownMpaException, UnknownGenreException {
+        filmStorage.getFilmById(filmId).orElseThrow(() -> new UnknownFilmException(
+                String.format("Фильм с id=%d не существует", filmId)));
+        userService.findById(userId);
     }
-
 }
