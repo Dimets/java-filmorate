@@ -75,6 +75,9 @@ create table IF NOT EXISTS USERS
         primary key (ID)
 );
 
+create unique index IF NOT EXISTS USERS_ID_UINDEX
+    on USERS (ID);
+
 create table IF NOT EXISTS FILM_LIKE
 (
     FILM_ID INTEGER,
@@ -102,6 +105,104 @@ create table IF NOT EXISTS FRIENDS
             on delete cascade
 );
 
-create unique index IF NOT EXISTS USERS_ID_UINDEX
-    on USERS (ID);
+create table IF NOT EXISTS DIRECTOR
+(
+    ID            INTEGER auto_increment,
+    DIRECTOR_NAME CHARACTER VARYING,
+    constraint DIRECTOR_PK
+        primary key (ID)
+);
+
+create unique index IF NOT EXISTS DIRECTOR_ID_UINDEX
+    on DIRECTOR (ID);
+
+create table IF NOT EXISTS FILM_DIRECTOR
+(
+    FILM_ID     INTEGER,
+    DIRECTOR_ID INTEGER,
+    constraint FILM_DIRECTOR_DIRECTOR_ID_FK
+        foreign key (DIRECTOR_ID) references DIRECTOR,
+    constraint FILM_DIRECTOR_FILM_ID_FK
+        foreign key (FILM_ID) references FILM
+            on delete cascade
+);
+
+create table IF NOT EXISTS  FEED_TYPE
+(
+    ID   INTEGER auto_increment,
+    TYPE CHARACTER VARYING,
+    constraint FEED_TYPE_PK
+        primary key (ID)
+);
+
+-- auto-generated definition
+create unique index IF NOT EXISTS FEED_TYPE_ID_UINDEX
+    on FEED_TYPE (ID);
+
+create table IF NOT EXISTS FEED_OPERATION
+(
+    ID        integer auto_increment,
+    OPERATION character varying,
+    constraint FEED_OPERATION_PK
+        primary key (ID)
+);
+
+create unique index IF NOT EXISTS FEED_OPERATION_ID_UINDEX
+    on FEED_OPERATION (ID);
+
+create table IF NOT EXISTS USER_FEED
+(
+    ID           integer auto_increment,
+    CREATE_DTTM  datetime,
+    TYPE_ID      integer,
+    OPERATION_ID integer,
+    ENTITY_ID    integer,
+    USER_ID      integer,
+    constraint USER_FEED_PK
+        primary key (ID),
+    constraint USER_FEED_FEED_OPERATION_ID_FK
+        foreign key (OPERATION_ID) references FEED_OPERATION,
+    constraint USER_FEED_FEED_TYPE_ID_FK
+        foreign key (TYPE_ID) references FEED_TYPE,
+    constraint USER_FEED_USERS_ID_FK
+        foreign key (USER_ID) references USERS
+            on delete cascade
+);
+
+create unique index IF NOT EXISTS USER_FEED_ID_UINDEX
+    on USER_FEED (ID);
+
+
+create table IF NOT EXISTS REVIEW
+(
+    ID          integer auto_increment,
+    CONTENT     character varying,
+    IS_POSITIVE boolean,
+    USER_ID     integer,
+    FILM_ID     integer,
+    constraint REVIEW_PK
+        primary key (ID),
+    constraint REVIEW_FILM_ID_FK
+        foreign key (FILM_ID) references FILM
+            on delete cascade,
+    constraint REVIEW_USERS_ID_FK
+        foreign key (USER_ID) references USERS
+            on delete cascade
+);
+
+create unique index IF NOT EXISTS REVIEW_ID_UINDEX
+    on REVIEW (ID);
+
+create table IF NOT EXISTS REVIEW_LIKES
+(
+    REVIEW_ID integer,
+    USER_ID   integer,
+    IS_USEFUL boolean,
+    constraint REVIEW_LIKES_REVIEW_ID_FK
+        foreign key (REVIEW_ID) references REVIEW
+            on delete cascade,
+    constraint REVIEW_LIKES_USERS_ID_FK
+        foreign key (USER_ID) references USERS
+            on delete cascade
+);
 
