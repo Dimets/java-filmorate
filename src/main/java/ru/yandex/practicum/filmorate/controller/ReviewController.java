@@ -22,8 +22,8 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<Review> getReviews(@RequestParam (required = false) Integer filmId,
-                                   @RequestParam (required = false) Integer count){
+    public List<Review> getReviews(@RequestParam(required = false) Integer filmId,
+                                   @RequestParam(required = false) Integer count) {
         log.info("GET /reviews filmId={} count={}", filmId, count);
         return reviewService.getReview(filmId, count);
     }
@@ -35,7 +35,7 @@ public class ReviewController {
     }
 
     @GetMapping("/{id}")
-    public Review getReviewById(@PathVariable int id){
+    public Review getReviewById(@PathVariable int id) {
         log.info("GET /reviews/" + id);
         return reviewService.getReviewById(id);
     }
@@ -59,7 +59,7 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteReview(@PathVariable int id){
+    public void deleteReview(@PathVariable int id) {
         log.info("DELETE /reviews/" + id);
         reviewService.deleteReview(id);
     }

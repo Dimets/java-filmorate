@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.ReviewDao;
 import ru.yandex.practicum.filmorate.exception.IdInvalidException;
@@ -50,12 +49,6 @@ public class ReviewService {
             throw new UnknownReviewException(String.format("idReview=%d is missing in the database", id));
         }
     }
-
-//
-//    public List<Review> getReviewByIdFilm(int idFilm, int count) {
-//        return reviewDao.getReviewByIdFilm(idFilm, count);
-//    }
-//
 
     public void addLike(long idReview, int idUser) {
         reviewDao.addLike(idReview, idUser);

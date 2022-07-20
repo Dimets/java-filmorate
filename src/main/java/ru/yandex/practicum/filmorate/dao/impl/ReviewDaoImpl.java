@@ -4,20 +4,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.ReviewDao;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.model.User;
 
-import java.lang.reflect.InvocationTargetException;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -63,7 +58,7 @@ public class ReviewDaoImpl implements ReviewDao {
     }
 
     @Override
-    public  Review getReviewById(long id) {
+    public Review getReviewById(long id) {
         String sql = "SELECT * FROM REVIEW WHERE id=?";
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> makeReview(rs), id);
 
@@ -128,7 +123,7 @@ public class ReviewDaoImpl implements ReviewDao {
                 .build();
     }
 
-    private int getUseful(long idReview){
+    private int getUseful(long idReview) {
         String sqlCountLike = "SELECT COUNT(*) FROM REVIEW_LIKES WHERE IS_USEFUL=true AND REVIEW_ID=?";
         String sqlCountDislike = "SELECT COUNT(*) FROM REVIEW_LIKES WHERE IS_USEFUL=false AND REVIEW_ID=?";
         return jdbcTemplate.queryForObject(sqlCountLike, Integer.class, idReview) -
