@@ -9,11 +9,15 @@ import org.springframework.util.StringUtils;
 import ru.yandex.practicum.filmorate.dao.FilmLikeDao;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -76,6 +80,26 @@ public class FilmService {
 
     public List<Film> findPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
         return filmStorage.getPopular(count);
+    }
+
+    public List<Film> getUserFilms(int userId) throws UnknownMpaException, UnknownFilmException, UnknownGenreException,
+            UnknownUserException{
+        List<Film> userFilms = new ArrayList<>();
+        for (int i : filmLikeDao.getUserLikes(userId)) {
+            userFilms.add(findById(i));
+        }
+        log.debug(String.format("Список фильмов пользователя id=%d: {}", userId, userFilms));
+        return userFilms;
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) throws UnknownMpaException, UnknownFilmException,
+            UnknownGenreException, UnknownUserException {
+        List<Film> result = new ArrayList<>();
+        result.addAll(getUserFilms(userId));
+        result.retainAll(getUserFilms(friendId));
+        result.stream().sorted((film1,film2) ->film1.getLikes().size() - film2.getLikes().size())
+                .collect(Collectors.toList());
+        return result;
     }
 
     public void validateFilm(Film film) throws ValidationException {

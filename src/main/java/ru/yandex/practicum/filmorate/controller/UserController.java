@@ -37,7 +37,7 @@ public class UserController {
         return userService.update(user);
     }
     @DeleteMapping("/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public void delete(@PathVariable("userId") int userid) throws UnknownUserException {
         log.info("DELETE /users/" + userid);
         userService.deleteById(userid);
