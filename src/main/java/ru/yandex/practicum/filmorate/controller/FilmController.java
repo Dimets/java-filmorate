@@ -74,11 +74,17 @@ public class FilmController {
         filmService.deleteLike(filmId, userId);
     }
 
-    @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(value = "count", defaultValue = "10") Integer count)
+    @GetMapping({"/popular"})
+    public List<Film> getPopular(@RequestParam(value = "count", defaultValue = "10") Integer count,
+                                 @RequestParam(name = "genreId", required = false) Integer genreId,
+                                 @RequestParam(name = "year", required = false) Integer year)
             throws UnknownMpaException, UnknownGenreException, UnknownUserException {
-        log.info("GET /popular count = {}", count);
-        return filmService.findPopular(count);
+        if (genreId == null && year == null) {
+            log.info("GET /popular count = {}", count);
+            return filmService.findPopular(count);
+        }
+        log.info("GET /popular count = {}, genreId = {}, year = {}", count, genreId, year);
+        return filmService.getPopularByGenreAndYear(count, genreId, year);
     }
 
     @GetMapping("/common")
@@ -88,4 +94,12 @@ public class FilmController {
         log.info("GET /common films");
         return filmService.getCommonFilms(userId, friendId);
     }
+
+//    @GetMapping("/popular?count={limit}&genreId={genreId}&year={year}")
+//    public List<Film> getPopularByGenreAndYear(@RequestParam(name = "count", defaultValue = "10") int count,
+//                                               @RequestParam(name = "genreId") Integer genreId,
+//                                               @RequestParam(name = "year") Integer year) {
+//        log.info("GET /popular count = {}, genreId = {}, year = {}", count, genreId, year);
+//        return filmService.getPopularByGenreAndYear(count, genreId, year);
+//    }
 }

@@ -123,4 +123,8 @@ public class FilmService {
                 String.format("Фильм с id=%d не существует", filmId)));
         userService.findById(userId);
     }
+
+    public List<Film> getPopularByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        return filmStorage.getPopularByGenreAndYear(count, genreId, year);
+    }
 }

@@ -149,4 +149,56 @@ public class FilmDbStorage implements FilmStorage {
         return filmList;
     }
 
+    @Override
+    public List<Film> getPopularByGenreAndYear(Integer count, Integer genreId, Integer year) {
+        if (genreId == null) {
+            return getPopularByYear(count, year);
+        } else if (year == null) {
+            return getPopularByGenre(count, genreId);
+        }
+        String sql = "SELECT f.id FROM film as f " +
+                "       right join FILM_GENRE FG on f.id = FG.FILM_ID\n" +
+                "        WHERE fg.GENRE_ID=?\n" +
+                "        group by f.id\n" +
+                "        having EXTRACT(YEAR from f.RELEASE_DATE) = ?\n" +
+                "        limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+                    try {
+                        return getFilmById(rs.getInt("id")).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                },genreId, year, count);
+    }
+    private List<Film> getPopularByGenre(Integer count, Integer genreId) {
+        String sql = "SELECT f.id FROM film as f " +
+                "       right join FILM_GENRE FG on f.id = FG.FILM_ID\n" +
+                "        WHERE fg.GENRE_ID=?\n" +
+                "        limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+                    try {
+                        return getFilmById(rs.getInt("id")).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }, genreId, count);
+    }
+
+    private List<Film> getPopularByYear(Integer count, Integer year) {
+        String sql = "SELECT f.id FROM film as f " +
+                "        group by f.id\n" +
+                "        having EXTRACT(YEAR from f.RELEASE_DATE) = ?\n" +
+                "        limit ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+                    try {
+                        return getFilmById(rs.getInt("id")).get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }, year, count);
+    }
+
 }
