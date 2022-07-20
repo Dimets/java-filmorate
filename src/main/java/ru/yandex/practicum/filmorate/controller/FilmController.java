@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{filmId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public void delete(@PathVariable("filmId") int filmId) throws UnknownFilmException,
             UnknownMpaException, UnknownGenreException, UnknownUserException {
         log.info("DELETE /films/" + filmId);
@@ -78,5 +79,13 @@ public class FilmController {
             throws UnknownMpaException, UnknownGenreException, UnknownUserException {
         log.info("GET /popular count = {}", count);
         return filmService.findPopular(count);
+    }
+
+    @GetMapping("/common")
+    public List<Film> findCommonFilms(@RequestParam (value = "userId", required = true) Integer userId,
+                                      @RequestParam (value = "friendId", required = true) Integer friendId)
+            throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownFilmException {
+        log.info("GET /common films");
+        return filmService.getCommonFilms(userId, friendId);
     }
 }

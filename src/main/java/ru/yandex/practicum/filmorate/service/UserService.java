@@ -100,6 +100,9 @@ public class UserService {
 
     public List<User> getUserFriends(int userId) throws UnknownUserException {
         List<User> userFriends = new ArrayList<>();
+        if (userStorage.getUserById(userId).isEmpty()){
+            throw new UnknownUserException(String.format("Пользователь с id=%d отсутствует", userId));
+        }
         for (int i : friendDao.getUserFriends(userId)) {
             userFriends.add(findById(i));
         }

@@ -28,6 +28,17 @@ public class FilmLikeDaoImpl implements FilmLikeDao {
         }
         return filmLikeSet;
     }
+    @Override
+    public Set<Integer> getUserLikes(int userId) {
+        SqlRowSet userFilmsRows = jdbcTemplate.queryForRowSet("select film_id from film_like " +
+                "where user_id = ?", userId);
+        Set<Integer> userFilmsSet = new HashSet<>();
+
+        while (userFilmsRows.next()) {
+            userFilmsSet.add(userFilmsRows.getInt("film_id"));
+        }
+        return userFilmsSet;
+    }
 
     @Override
     public void addFilmLike(int filmId, int userId) {
