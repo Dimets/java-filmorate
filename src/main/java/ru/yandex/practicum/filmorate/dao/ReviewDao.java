@@ -12,7 +12,7 @@ public interface ReviewDao {
 
     void deleteReview(int id);
 
-    Optional<Review> getReviewById(int id);
+    Review getReviewById(long id);
 
     List<Review> getReviewByIdFilm(int idFilm, int count);
 
@@ -23,4 +23,6 @@ public interface ReviewDao {
     void deleteLike(long idReview, int idUser);
 
     void deleteDislike(long idReview, int idUser);
+
+    List<Review> getAllReview(int count);
 }
