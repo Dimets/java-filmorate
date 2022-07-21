@@ -47,4 +47,9 @@ public class InMemoryFilmStorage implements FilmStorage {
         Collections.sort(popularFilms, (o1, o2) -> o2.getLikes().size() - o1.getLikes().size());
         return popularFilms.subList(0, count > popularFilms.size() ? popularFilms.size() : count);
     }
+
+    @Override
+    public List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) {
+        return null;
+    }
 }

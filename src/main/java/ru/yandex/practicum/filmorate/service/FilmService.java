@@ -9,14 +9,12 @@ import org.springframework.util.StringUtils;
 import ru.yandex.practicum.filmorate.dao.FilmLikeDao;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,6 +78,11 @@ public class FilmService {
 
     public List<Film> findPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
         return filmStorage.getPopular(count);
+    }
+
+    public List<Film> findPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException {
+        return filmStorage.getPopular(count, genreId, year);
     }
 
     public List<Film> getUserFilms(int userId) throws UnknownMpaException, UnknownFilmException, UnknownGenreException,
