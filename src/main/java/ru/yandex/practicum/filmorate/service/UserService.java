@@ -79,7 +79,7 @@ public class UserService {
         checkExistUserAndFriend(userId, friendId);
         if (getUserFriends(userId).contains(friendId)){
             throw new FriendException((String.format("Пользователь с id=%d уже есть в списке друзей пользователя" +
-                            " с id=%d", friendId, userId)));
+                    " с id=%d", friendId, userId)));
         }
         friendDao.addFriend(userId, friendId);
         log.info(String.format("Пользователь с id=%d добавлен в друзья к пользователю с id=%d:", friendId, userId));

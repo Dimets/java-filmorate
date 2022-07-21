@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
 import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
 import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
@@ -51,5 +53,26 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) {
         return null;
+    }
+
+    @Override
+    public List<Film> getPopularByDirector(int id, String sortBy) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+        List<Film> popularFilms = getAllFilms();
+        List<Film> popularFilmsByDirector = new ArrayList<>();
+        for (Film film: popularFilms) {
+            Set<Director> directors = film.getDirectors();
+            for (Director director: directors) {
+                if (director.getId() == id) {
+                    popularFilmsByDirector.add(film);
+                }
+            }
+        }
+        if (sortBy.equals("year")) {
+            Collections.sort(popularFilmsByDirector, Comparator.comparing(Film::getReleaseDate));
+        } else if ((sortBy.equals("likes"))) {
+            Collections.sort(popularFilmsByDirector, (o1, o2) -> o2.getLikes().size() - o1.getLikes().size());
+        }
+
+        return popularFilmsByDirector;
     }
 }
