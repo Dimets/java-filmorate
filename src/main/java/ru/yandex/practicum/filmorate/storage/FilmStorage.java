@@ -21,5 +21,5 @@ public interface FilmStorage {
 
     List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
 
-    List<Film> getPopularByGenreAndYear(Integer count, Integer genreId, Integer year);
+    List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
 }

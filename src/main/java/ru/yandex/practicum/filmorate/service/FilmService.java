@@ -9,14 +9,12 @@ import org.springframework.util.StringUtils;
 import ru.yandex.practicum.filmorate.dao.FilmLikeDao;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -82,6 +80,11 @@ public class FilmService {
         return filmStorage.getPopular(count);
     }
 
+    public List<Film> findPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException {
+        return filmStorage.getPopular(count, genreId, year);
+    }
+
     public List<Film> getUserFilms(int userId) throws UnknownMpaException, UnknownFilmException, UnknownGenreException,
             UnknownUserException{
         List<Film> userFilms = new ArrayList<>();
@@ -122,9 +125,5 @@ public class FilmService {
         filmStorage.getFilmById(filmId).orElseThrow(() -> new UnknownFilmException(
                 String.format("Фильм с id=%d не существует", filmId)));
         userService.findById(userId);
-    }
-
-    public List<Film> getPopularByGenreAndYear(Integer count, Integer genreId, Integer year) {
-        return filmStorage.getPopularByGenreAndYear(count, genreId, year);
     }
 }

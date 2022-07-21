@@ -49,7 +49,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularByGenreAndYear(Integer count, Integer genreId, Integer year) {
+    public List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) {
         return null;
     }
 }

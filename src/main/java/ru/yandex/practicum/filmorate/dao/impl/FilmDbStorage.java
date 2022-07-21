@@ -149,56 +149,48 @@ public class FilmDbStorage implements FilmStorage {
         return filmList;
     }
 
-    @Override
-    public List<Film> getPopularByGenreAndYear(Integer count, Integer genreId, Integer year) {
-        if (genreId == null) {
-            return getPopularByYear(count, year);
-        } else if (year == null) {
-            return getPopularByGenre(count, genreId);
+    public List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException {
+        SqlRowSet popularFilmsRows;
+        if (genreId.isEmpty()) {
+            popularFilmsRows = getPopularByYear(count, year.get());
+        } else if (year.isEmpty()) {
+            popularFilmsRows = getPopularByGenre(count, genreId.get());
+        } else {
+            String sql = "SELECT f.id FROM film as f " +
+                    "LEFT JOIN " +
+                    "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id" +
+                    "       right join FILM_GENRE FG on f.id = FG.FILM_ID\n" +
+                    "        WHERE fg.GENRE_ID=?\n" +
+                    "        group by f.id\n" +
+                    "        having EXTRACT(YEAR from f.RELEASE_DATE) = ?\n" +
+                    "ORDER BY likes_count DESC LIMIT ?";
+            popularFilmsRows = jdbcTemplate.queryForRowSet(sql, genreId.get(), year.get(), count);
         }
-        String sql = "SELECT f.id FROM film as f " +
-                "       right join FILM_GENRE FG on f.id = FG.FILM_ID\n" +
-                "        WHERE fg.GENRE_ID=?\n" +
-                "        group by f.id\n" +
-                "        having EXTRACT(YEAR from f.RELEASE_DATE) = ?\n" +
-                "        limit ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-                    try {
-                        return getFilmById(rs.getInt("id")).get();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                },genreId, year, count);
-    }
-    private List<Film> getPopularByGenre(Integer count, Integer genreId) {
-        String sql = "SELECT f.id FROM film as f " +
-                "       right join FILM_GENRE FG on f.id = FG.FILM_ID\n" +
-                "        WHERE fg.GENRE_ID=?\n" +
-                "        limit ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-                    try {
-                        return getFilmById(rs.getInt("id")).get();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }, genreId, count);
+            List<Film> filmList = new ArrayList<>();
+            while (popularFilmsRows.next()) {
+                filmList.add(getFilmById(popularFilmsRows.getInt("id")).get());
+            }
+            return filmList;
     }
 
-    private List<Film> getPopularByYear(Integer count, Integer year) {
+    private SqlRowSet getPopularByGenre(Integer count, Integer genreId) {
         String sql = "SELECT f.id FROM film as f " +
-                "        group by f.id\n" +
-                "        having EXTRACT(YEAR from f.RELEASE_DATE) = ?\n" +
-                "        limit ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-                    try {
-                        return getFilmById(rs.getInt("id")).get();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }, year, count);
+                "LEFT JOIN " +
+                "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id" +
+                "       right join FILM_GENRE FG on f.id = FG.FILM_ID\n" +
+                "        WHERE fg.GENRE_ID=?\n" +
+                "ORDER BY likes_count DESC LIMIT ?";
+        return jdbcTemplate.queryForRowSet(sql, genreId, count);
     }
 
+    private SqlRowSet getPopularByYear(Integer count, Integer year) {
+        String sql = "SELECT f.id FROM film as f " +
+                "LEFT JOIN " +
+                "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id" +
+                "        group by f.id\n" +
+                "        having EXTRACT(YEAR from f.RELEASE_DATE) = ?\n" +
+                "ORDER BY likes_count DESC LIMIT ?";
+        return jdbcTemplate.queryForRowSet(sql, year, count);
+    }
 }

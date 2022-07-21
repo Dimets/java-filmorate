@@ -6,10 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/films")
@@ -79,12 +79,14 @@ public class FilmController {
                                  @RequestParam(name = "genreId", required = false) Integer genreId,
                                  @RequestParam(name = "year", required = false) Integer year)
             throws UnknownMpaException, UnknownGenreException, UnknownUserException {
-        if (genreId == null && year == null) {
+        Optional<Integer> genreOpt = Optional.ofNullable(genreId);
+        Optional<Integer> yearOpt = Optional.ofNullable(year);
+        if (genreOpt.isEmpty() && yearOpt.isEmpty()) {
             log.info("GET /popular count = {}", count);
             return filmService.findPopular(count);
         }
         log.info("GET /popular count = {}, genreId = {}, year = {}", count, genreId, year);
-        return filmService.getPopularByGenreAndYear(count, genreId, year);
+        return filmService.findPopular(count, genreOpt, yearOpt);
     }
 
     @GetMapping("/common")
@@ -94,12 +96,4 @@ public class FilmController {
         log.info("GET /common films");
         return filmService.getCommonFilms(userId, friendId);
     }
-
-//    @GetMapping("/popular?count={limit}&genreId={genreId}&year={year}")
-//    public List<Film> getPopularByGenreAndYear(@RequestParam(name = "count", defaultValue = "10") int count,
-//                                               @RequestParam(name = "genreId") Integer genreId,
-//                                               @RequestParam(name = "year") Integer year) {
-//        log.info("GET /popular count = {}, genreId = {}, year = {}", count, genreId, year);
-//        return filmService.getPopularByGenreAndYear(count, genreId, year);
-//    }
 }
