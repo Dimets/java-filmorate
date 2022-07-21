@@ -6,15 +6,19 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.FilmDirectorDao;
 import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
 import ru.yandex.practicum.filmorate.dao.FilmLikeDao;
+import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
 import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
 import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.MpaService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.Date;
@@ -27,20 +31,25 @@ public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final MpaService mpaService;
     private final FilmGenreDao filmGenreDao;
+    private final FilmDirectorDao filmDirectorDao;
     private final FilmLikeDao filmLikeDao;
     private final UserService userService;
 
+    private final DirectorService directorService;
+
     public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaService mpaService, FilmGenreDao filmGenreDao,
-                         FilmLikeDao filmLikeDao, UserService userService) {
+                         FilmDirectorDao filmDirectorDao, FilmLikeDao filmLikeDao, UserService userService, DirectorService directorService) {
         this.jdbcTemplate = jdbcTemplate;
         this.mpaService = mpaService;
         this.filmGenreDao = filmGenreDao;
+        this.filmDirectorDao = filmDirectorDao;
         this.filmLikeDao = filmLikeDao;
         this.userService = userService;
+        this.directorService = directorService;
     }
 
     @Override
-    public Film createFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+    public Film createFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         String sql = "insert into film (name, description, release_date, duration,rating_mpa_id, rate) " +
                 "values (?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -61,11 +70,14 @@ public class FilmDbStorage implements FilmStorage {
         } else {
             film.setGenres(Collections.emptySet());
         }
+        if (film.getDirectors() != null) {
+            filmDirectorDao.setFilmDirectors(film.getDirectors(), film);
+        }
         return getFilmById(keyHolder.getKey().intValue()).get();
     }
 
     @Override
-    public Film updateFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+    public Film updateFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         if (film.equals(getFilmById(film.getId()))) {
             log.info("Фильм id={} не изменился", film.getId());
         } else {
@@ -86,8 +98,17 @@ public class FilmDbStorage implements FilmStorage {
                 filmGenreDao.deleteFilmGenres(film);
                 film.setGenres(Collections.emptySet());
             }
+            if (film.getDirectors() != null) {
+                filmDirectorDao.deleteFilmDirectors(film);
+                filmDirectorDao.setFilmDirectors(film.getDirectors(), film);
+                film = getFilmById(film.getId()).get();
+            } else {
+                filmDirectorDao.deleteFilmDirectors(film);
+                film = getFilmById(film.getId()).get();
+                film.setDirectors(null);
+            }
         }
-        return getFilmById(film.getId()).get();
+        return film;
     }
 
     @Override
@@ -97,7 +118,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+    public Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("select * from film where id = ?", id);
         Set<User> userLikesSet = new HashSet<>();
 
@@ -109,7 +130,8 @@ public class FilmDbStorage implements FilmStorage {
                     filmRows.getDate("release_date").toLocalDate(),
                     filmRows.getInt("duration"),
                     filmRows.getInt("rate"),
-                    filmGenreDao.getFilmGenres(id)
+                    filmGenreDao.getFilmGenres(id),
+                    filmDirectorDao.getFilmDirectors(id)
             );
 
             film.setId(filmRows.getInt("id"));
@@ -124,7 +146,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+    public List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM");
 
         List<Film> filmList = new ArrayList<>();
@@ -136,7 +158,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+    public List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
                 "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
                 "ORDER BY likes_count DESC LIMIT ?", count);
@@ -149,8 +171,31 @@ public class FilmDbStorage implements FilmStorage {
         return filmList;
     }
 
+    @Override
+    public List<Film> getPopularByDirector(int id, String sortBy) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+        SqlRowSet filmRows = null;
+        directorService.findById(id);
+        if (Objects.equals(sortBy, "year")) {
+            filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
+                    "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
+                    "LEFT JOIN FILM_DIRECTOR fd on f.id = fd.film_id WHERE fd.director_id = ? " +
+                    "ORDER BY YEAR(f.release_date)", id);
+        } else if (Objects.equals(sortBy, "likes")) {
+            filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
+                    "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
+                    "LEFT JOIN FILM_DIRECTOR fd on f.id = fd.film_id WHERE fd.director_id = ? " +
+                    "ORDER BY likes_count DESC", id);
+        }
+        List<Film> filmList = new ArrayList<>();
+
+        while (filmRows.next()) {
+            filmList.add(getFilmById(filmRows.getInt("id")).get());
+        }
+        return filmList;
+    }
+
     public List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException {
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
         SqlRowSet popularFilmsRows;
         if (genreId.isEmpty()) {
             popularFilmsRows = getPopularByYear(count, year.get());

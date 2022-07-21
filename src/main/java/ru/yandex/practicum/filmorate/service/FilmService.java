@@ -29,13 +29,13 @@ public class FilmService {
 
 
     public Film create(Film film) throws ValidationException, UnknownMpaException,
-            UnknownGenreException, UnknownUserException {
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
         validateFilm(film);
         return filmStorage.createFilm(film);
     }
 
     public Film update(Film film) throws ValidationException, UnknownFilmException, UnknownMpaException,
-            UnknownGenreException, UnknownUserException {
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
         validateFilm(film);
         filmStorage.getFilmById(film.getId()).orElseThrow(() -> new UnknownFilmException(
                 String.format("Фильм с id=%d не существует", film.getId())));
@@ -44,49 +44,49 @@ public class FilmService {
     }
 
     public void deleteById(int id) throws UnknownFilmException, UnknownMpaException, UnknownGenreException,
-            UnknownUserException {
+            UnknownUserException, UnknownDirectorException {
         filmStorage.getFilmById(id).orElseThrow(() -> new UnknownFilmException(
                 String.format("Фильм с id=%d не существует", id)));
         log.info("Фильм с id={} удален", id);
         filmStorage.deleteFilm(id);
     }
 
-    public List<Film> findAll() throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+    public List<Film> findAll() throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         log.info("Список фильмов получен size=: " + filmStorage.getAllFilms().size());
         return filmStorage.getAllFilms();
     }
 
     public Film findById(int id) throws UnknownFilmException, UnknownMpaException, UnknownGenreException,
-            UnknownUserException {
+            UnknownUserException, UnknownDirectorException {
         return filmStorage.getFilmById(id).orElseThrow(() -> new UnknownFilmException(
                 String.format("Фильм с id=%d не существует", id)));
     }
 
     public void addLike(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
-            UnknownMpaException, UnknownGenreException {
+            UnknownMpaException, UnknownGenreException, UnknownDirectorException {
         checkExistFilmAndUser(filmId, userId);
         filmLikeDao.addFilmLike(filmId,userId);
         log.info(String.format("Лайк пользователя id=%d добавлен к фильму id=%d", userId, filmId));
     }
 
     public void deleteLike (int filmId, int userId) throws UnknownFilmException, UnknownUserException,
-            UnknownMpaException, UnknownGenreException {
+            UnknownMpaException, UnknownGenreException, UnknownDirectorException {
         checkExistFilmAndUser(filmId, userId);
         filmLikeDao.deleteFilmLike(filmId,userId);
         log.info(String.format("Лайк пользователя id=%d удален у фильма id=%d", userId, filmId));
     }
 
-    public List<Film> findPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException {
+    public List<Film> findPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         return filmStorage.getPopular(count);
     }
 
     public List<Film> findPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException {
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
         return filmStorage.getPopular(count, genreId, year);
     }
 
     public List<Film> getUserFilms(int userId) throws UnknownMpaException, UnknownFilmException, UnknownGenreException,
-            UnknownUserException{
+            UnknownUserException, UnknownDirectorException {
         List<Film> userFilms = new ArrayList<>();
         for (int i : filmLikeDao.getUserLikes(userId)) {
             userFilms.add(findById(i));
@@ -96,13 +96,17 @@ public class FilmService {
     }
 
     public List<Film> getCommonFilms(int userId, int friendId) throws UnknownMpaException, UnknownFilmException,
-            UnknownGenreException, UnknownUserException {
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
         List<Film> result = new ArrayList<>();
         result.addAll(getUserFilms(userId));
         result.retainAll(getUserFilms(friendId));
         result.stream().sorted((film1,film2) ->film1.getLikes().size() - film2.getLikes().size())
                 .collect(Collectors.toList());
         return result;
+    }
+
+    public List<Film> findPopularByDirector(int id, String sortBy) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+        return filmStorage.getPopularByDirector(id, sortBy);
     }
 
     public void validateFilm(Film film) throws ValidationException {
@@ -121,7 +125,7 @@ public class FilmService {
     }
 
     void checkExistFilmAndUser(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
-            UnknownMpaException, UnknownGenreException {
+            UnknownMpaException, UnknownGenreException, UnknownDirectorException {
         filmStorage.getFilmById(filmId).orElseThrow(() -> new UnknownFilmException(
                 String.format("Фильм с id=%d не существует", filmId)));
         userService.findById(userId);
