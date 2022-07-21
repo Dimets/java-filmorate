@@ -8,21 +8,19 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 //import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
 import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.DirectorStorage;
+import ru.yandex.practicum.filmorate.dao.DirectorDao;
 
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Component("directorDbStorage")
+@Component("directorDaoImpl")
 @Slf4j
-public class DirectorDbStorage implements DirectorStorage {
+public class DirectorDaoImpl implements DirectorDao {
     private final JdbcTemplate jdbcTemplate;
 
-    public DirectorDbStorage(JdbcTemplate jdbcTemplate) /*throws UnknownDirectorException*/ {
+    public DirectorDaoImpl(JdbcTemplate jdbcTemplate) /*throws UnknownDirectorException*/ {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -66,10 +64,9 @@ public class DirectorDbStorage implements DirectorStorage {
         SqlRowSet directorRows = jdbcTemplate.queryForRowSet("select * from director where id = ?", id);
 
         if (directorRows.next()) {
-            Director director = new Director(
+            Director director = new Director(directorRows.getInt("id"),
                     directorRows.getString("director_name")
             );
-            director.setId(directorRows.getInt("id"));
             return Optional.of(director);
         }
         return Optional.empty();

@@ -8,11 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.DirectorStorage;
+import ru.yandex.practicum.filmorate.dao.DirectorDao;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -20,8 +17,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DirectorService {
     @Autowired
-    @Qualifier("directorDbStorage")
-    private DirectorStorage directorStorage;
+    @Qualifier("directorDaoImpl")
+    private DirectorDao directorStorage;
 
     public Director create(Director director) throws ValidationException {
         validateDirector(director);
@@ -32,16 +29,16 @@ public class DirectorService {
     public Director update(Director director) throws ValidationException, UnknownDirectorException {
         validateDirector(director);
         directorStorage.getDirectorById(director.getId()).orElseThrow(() -> new UnknownDirectorException(
-                String.format("Режиссер с id=%d не существует", director.getId())));
+                String.format("Режиссера с id=%d не существует", director.getId())));
         return directorStorage.updateDirector(director);
     }
 
     public void deleteById(int id) throws UnknownDirectorException {
-        if (directorStorage.getDirectorById(id) != null) {
+        if (directorStorage.getDirectorById(id).isPresent()) {
             log.info(String.format("Режиссер с id=%d удален:", id) + directorStorage.getDirectorById(id));
             directorStorage.deleteDirector(id);
         } else {
-            throw new UnknownDirectorException(String.format("Режиссер с id=%d не существует", id));
+            throw new UnknownDirectorException(String.format("Режиссера с id=%d не существует", id));
         }
     }
 

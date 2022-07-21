@@ -7,8 +7,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.yandex.practicum.filmorate.dao.FilmLikeDao;
+import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
@@ -26,6 +30,9 @@ public class FilmService {
     private FilmStorage filmStorage;
     private final UserService userService;
     private final FilmLikeDao filmLikeDao;
+    private final DirectorService directorService;
+    private final GenreDao genreDao;
+    private final MpaDao mpaDao;
 
 
     public Film create(Film film) throws ValidationException, UnknownMpaException,
@@ -109,7 +116,7 @@ public class FilmService {
         return filmStorage.getPopularByDirector(id, sortBy);
     }
 
-    public void validateFilm(Film film) throws ValidationException {
+    public void validateFilm(Film film) throws ValidationException, UnknownDirectorException, UnknownGenreException, UnknownMpaException {
         if (!StringUtils.hasText(film.getName())) {
             throw new ValidationException("Название фильма не может быть пустым");
         }
@@ -121,6 +128,17 @@ public class FilmService {
         }
         if (film.getDuration() < 1) {
             throw new ValidationException("Продолжительность фильма должна быть положительной");
+        }
+        mpaDao.findMpaById(film.getMpa().getId());
+        if (film.getGenres() != null) {
+            for (Genre genre: film.getGenres()) {
+                genreDao.findGenreById(genre.getId());
+            }
+        }
+        if (film.getDirectors() != null) {
+            for (Director director: film.getDirectors()) {
+                    directorService.findById(director.getId());
+            }
         }
     }
 

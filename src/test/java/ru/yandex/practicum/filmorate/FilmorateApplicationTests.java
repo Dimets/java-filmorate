@@ -14,7 +14,7 @@ import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
 import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.*;
-import ru.yandex.practicum.filmorate.storage.DirectorStorage;
+import ru.yandex.practicum.filmorate.dao.DirectorDao;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FilmoRateApplicationTests {
 	private final UserDbStorage userStorage;
 	private final FilmDbStorage filmStorage;
-	private final DirectorStorage directorStorage;
+	private final DirectorDao directorStorage;
 	private final GenreDao genreDao;
 	private final MpaDao mpaDao;
 	private final FilmGenreDao filmGenreDao;
@@ -150,7 +150,7 @@ class FilmoRateApplicationTests {
 	}
 
 	@Test
-	public void testFindGenreById() {
+	public void testFindGenreById() throws UnknownGenreException {
 		Optional<Genre> genreOptional = genreDao.findGenreById(1);
 
 		assertThat(genreOptional)
