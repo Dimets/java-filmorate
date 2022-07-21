@@ -29,7 +29,7 @@ public class ReviewController {
     }
 
     @PostMapping
-    public Review createReview(@RequestBody Review review) throws ValidationException {
+    public Review createReview(@RequestBody Review review) throws ValidationException, UnknownFilmException, UnknownUserException {
         log.info("POST /reviews {}", review);
         return reviewService.createReview(review);
     }
@@ -41,7 +41,7 @@ public class ReviewController {
     }
 
     @PutMapping
-    public Review updateReview(@RequestBody Review review) throws ValidationException {
+    public Review updateReview(@RequestBody Review review) throws ValidationException, UnknownFilmException, UnknownUserException {
         log.info("PUT /reviews {}", review);
         return reviewService.updateReview(review);
     }

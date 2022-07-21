@@ -5,9 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.ReviewDao;
-import ru.yandex.practicum.filmorate.exception.IdInvalidException;
-import ru.yandex.practicum.filmorate.exception.UnknownReviewException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
@@ -24,13 +22,13 @@ public class ReviewService {
     }
 
 
-    public Review createReview(Review review) throws ValidationException {
+    public Review createReview(Review review) throws ValidationException, UnknownFilmException, UnknownUserException {
         validationReview(review);
         return reviewDao.createReview(review);
     }
 
 
-    public Review updateReview(Review review) throws ValidationException {
+    public Review updateReview(Review review) throws ValidationException, UnknownFilmException, UnknownUserException {
         validationReview(review);
         reviewDao.updateReview(review);
         return getReviewById(review.getReviewId());
@@ -82,7 +80,7 @@ public class ReviewService {
         return reviewDao.getReviewByIdFilm(filmId, count);
     }
 
-    private void validationReview(Review review) throws ValidationException {
+    private void validationReview(Review review) throws ValidationException, UnknownUserException, UnknownFilmException {
         if (review.getFilmId() == 0)
             throw new ValidationException("not set filmId");
 
@@ -93,10 +91,10 @@ public class ReviewService {
             throw new ValidationException("not set isPositive");
 
         if (review.getUserId() < 0)
-            throw new IdInvalidException(String.format("userId=%d is incorrect", review.getUserId()));
+            throw new UnknownUserException(String.format("userId=%d is incorrect", review.getUserId()));
 
-        if (review.getFilmId() < 1)
-            throw new IdInvalidException(String.format("filmId=%d is incorrect", review.getFilmId()));
+        if (review.getFilmId() < 0)
+            throw new UnknownFilmException(String.format("filmId=%d is incorrect", review.getFilmId()));
 
     }
 }
