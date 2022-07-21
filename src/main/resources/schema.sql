@@ -121,7 +121,8 @@ create table IF NOT EXISTS FILM_DIRECTOR
     FILM_ID     INTEGER,
     DIRECTOR_ID INTEGER,
     constraint FILM_DIRECTOR_DIRECTOR_ID_FK
-        foreign key (DIRECTOR_ID) references DIRECTOR,
+        foreign key (DIRECTOR_ID) references DIRECTOR
+            on delete cascade,
     constraint FILM_DIRECTOR_FILM_ID_FK
         foreign key (FILM_ID) references FILM
             on delete cascade

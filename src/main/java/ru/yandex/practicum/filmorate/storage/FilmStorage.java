@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
 import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
 import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
@@ -9,16 +10,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FilmStorage {
-    Film createFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
+    Film createFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
 
-    Film updateFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
+    Film updateFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
 
     void deleteFilm(int id);
 
-    Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
+    Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
 
-    List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException;
+    List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
 
-    List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException;
+    List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
 
+    List<Film> getPopularByDirector(int id, String sortBy) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
+
+    List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
 }

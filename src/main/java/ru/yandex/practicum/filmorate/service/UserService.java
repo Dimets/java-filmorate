@@ -79,7 +79,7 @@ public class UserService {
         checkExistUserAndFriend(userId, friendId);
         if (getUserFriends(userId).contains(friendId)){
             throw new FriendException((String.format("Пользователь с id=%d уже есть в списке друзей пользователя" +
-                            " с id=%d", friendId, userId)));
+                    " с id=%d", friendId, userId)));
         }
         friendDao.addFriend(userId, friendId);
         log.info(String.format("Пользователь с id=%d добавлен в друзья к пользователю с id=%d:", friendId, userId));
@@ -100,6 +100,9 @@ public class UserService {
 
     public List<User> getUserFriends(int userId) throws UnknownUserException {
         List<User> userFriends = new ArrayList<>();
+        if (userStorage.getUserById(userId).isEmpty()){
+            throw new UnknownUserException(String.format("Пользователь с id=%d отсутствует", userId));
+        }
         for (int i : friendDao.getUserFriends(userId)) {
             userFriends.add(findById(i));
         }

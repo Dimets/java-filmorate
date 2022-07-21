@@ -37,7 +37,7 @@ public class UserController {
         return userService.update(user);
     }
     @DeleteMapping("/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public void delete(@PathVariable("userId") int userid) throws UnknownUserException {
         log.info("DELETE /users/" + userid);
         userService.deleteById(userid);
@@ -77,7 +77,7 @@ public class UserController {
 
     @GetMapping("{userId}/friends/common/{otherUserId}")
     public List<User> findCommonFriends(@PathVariable("userId") int userId,
-                                          @PathVariable("otherUserId") int otherUserId) throws UnknownUserException {
+                                        @PathVariable("otherUserId") int otherUserId) throws UnknownUserException {
         log.info("GET /common friends");
         return userService.getCommonFriends(userId, otherUserId);
     }

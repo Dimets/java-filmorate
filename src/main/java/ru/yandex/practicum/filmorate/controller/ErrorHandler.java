@@ -68,4 +68,11 @@ public class ErrorHandler {
     }
 
 
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleUnknownDirectorException(final UnknownDirectorException e) {
+        log.error(e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
 }
