@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -49,7 +50,6 @@ public class FilmService {
         log.info("Фильм с id={} изменен", film.getId());
         return filmStorage.updateFilm(film);
     }
-
     public void deleteById(int id) throws UnknownFilmException, UnknownMpaException, UnknownGenreException,
             UnknownUserException, UnknownDirectorException {
         filmStorage.getFilmById(id).orElseThrow(() -> new UnknownFilmException(
@@ -85,6 +85,25 @@ public class FilmService {
 
     public List<Film> findPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         return filmStorage.getPopular(count);
+    }
+
+    public List<Film> searchFilms(String query, String by) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+        String[] searchByArr = by.split(",");
+        List<Film> foundFilms = new ArrayList<>();
+        for (String nextBy: searchByArr){
+            if (nextBy.equalsIgnoreCase("director")) {
+                foundFilms.addAll(filmStorage.searchFilmByDirector(query));
+            } else if (nextBy.equalsIgnoreCase("title")) {
+                foundFilms.addAll(filmStorage.searchFilmByTitle(query));
+            } else {
+                throw new UnknownSearchByException(String.format("невозможно искать по параметру %s.",nextBy));
+            }
+        }
+        Collections.sort(foundFilms, (film1,film2)->{
+            int comp = film2.getLikes().size() - film1.getLikes().size();
+            return comp;});
+
+        return foundFilms;
     }
 
     public List<Film> findPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException,

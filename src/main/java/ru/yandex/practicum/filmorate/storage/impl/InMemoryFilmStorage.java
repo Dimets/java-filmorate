@@ -55,6 +55,17 @@ public class InMemoryFilmStorage implements FilmStorage {
         return null;
     }
 
+    public List<Film> searchFilmByDirector (String query) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+        return null;
+    }
+
+    public List<Film> searchFilmByTitle (String query) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+        return null;
+    }
+
+
     @Override
     public List<Film> getPopularByDirector(int id, String sortBy) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         List<Film> popularFilms = getAllFilms();

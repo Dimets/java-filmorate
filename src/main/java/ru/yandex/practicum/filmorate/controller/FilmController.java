@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -57,6 +56,14 @@ public class FilmController {
             UnknownGenreException, UnknownUserException, UnknownDirectorException {
         log.info("GET /films/" + filmId);
         return filmService.findById(filmId);
+    }
+    @GetMapping("/search")
+    public List<Film> searchFilms(@RequestParam(value = "query", required = true) String query,
+                           @RequestParam(value = "by", required = true) String by) throws UnknownFilmException, UnknownMpaException,
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+        log.info("GET /films/search" + "?query="+query+"&by="+by);
+
+        return filmService.searchFilms(query, by);
     }
 
     @PutMapping("/{filmId}/like/{userId}")
