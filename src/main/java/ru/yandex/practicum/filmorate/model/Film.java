@@ -3,7 +3,8 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class Film {
@@ -18,7 +19,6 @@ public class Film {
     private Set<User> likes = new HashSet<>();
     private Set<Genre> genres;
     private Set<Director> directors;
-
 
     public Film(String name, String description, Mpa mpa, LocalDate releaseDate,
                 int duration, int rate, Set<Genre> genres, Set<Director> directors) {
@@ -35,5 +35,4 @@ public class Film {
     public static int getNextId() {
         return filmId++;
     }
-
 }

@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class FilmService {
+
     @Autowired
     @Qualifier("filmDbStorage")
     private FilmStorage filmStorage;
@@ -34,7 +35,6 @@ public class FilmService {
     private final DirectorService directorService;
     private final GenreDao genreDao;
     private final MpaDao mpaDao;
-
 
     public Film create(Film film) throws ValidationException, UnknownMpaException,
             UnknownGenreException, UnknownUserException, UnknownDirectorException {
@@ -50,6 +50,7 @@ public class FilmService {
         log.info("Фильм с id={} изменен", film.getId());
         return filmStorage.updateFilm(film);
     }
+
     public void deleteById(int id) throws UnknownFilmException, UnknownMpaException, UnknownGenreException,
             UnknownUserException, UnknownDirectorException {
         filmStorage.getFilmById(id).orElseThrow(() -> new UnknownFilmException(
@@ -72,14 +73,14 @@ public class FilmService {
     public void addLike(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
             UnknownMpaException, UnknownGenreException, UnknownDirectorException {
         checkExistFilmAndUser(filmId, userId);
-        filmLikeDao.addFilmLike(filmId,userId);
+        filmLikeDao.addFilmLike(filmId, userId);
         log.info(String.format("Лайк пользователя id=%d добавлен к фильму id=%d", userId, filmId));
     }
 
-    public void deleteLike (int filmId, int userId) throws UnknownFilmException, UnknownUserException,
+    public void deleteLike(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
             UnknownMpaException, UnknownGenreException, UnknownDirectorException {
         checkExistFilmAndUser(filmId, userId);
-        filmLikeDao.deleteFilmLike(filmId,userId);
+        filmLikeDao.deleteFilmLike(filmId, userId);
         log.info(String.format("Лайк пользователя id=%d удален у фильма id=%d", userId, filmId));
     }
 
@@ -90,18 +91,19 @@ public class FilmService {
     public List<Film> searchFilms(String query, String by) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
         String[] searchByArr = by.split(",");
         List<Film> foundFilms = new ArrayList<>();
-        for (String nextBy: searchByArr){
+        for (String nextBy : searchByArr) {
             if (nextBy.equalsIgnoreCase("director")) {
                 foundFilms.addAll(filmStorage.searchFilmByDirector(query));
             } else if (nextBy.equalsIgnoreCase("title")) {
                 foundFilms.addAll(filmStorage.searchFilmByTitle(query));
             } else {
-                throw new UnknownSearchByException(String.format("невозможно искать по параметру %s.",nextBy));
+                throw new UnknownSearchByException(String.format("невозможно искать по параметру %s.", nextBy));
             }
         }
-        Collections.sort(foundFilms, (film1,film2)->{
+        Collections.sort(foundFilms, (film1, film2) -> {
             int comp = film2.getLikes().size() - film1.getLikes().size();
-            return comp;});
+            return comp;
+        });
 
         return foundFilms;
     }
@@ -126,7 +128,7 @@ public class FilmService {
         List<Film> result = new ArrayList<>();
         result.addAll(getUserFilms(userId));
         result.retainAll(getUserFilms(friendId));
-        result.stream().sorted((film1,film2) ->film1.getLikes().size() - film2.getLikes().size())
+        result.stream().sorted((film1, film2) -> film1.getLikes().size() - film2.getLikes().size())
                 .collect(Collectors.toList());
         return result;
     }
@@ -140,7 +142,7 @@ public class FilmService {
             throw new ValidationException("Название фильма не может быть пустым");
         }
         if (StringUtils.hasText(film.getDescription()) && film.getDescription().length() > 200) {
-            throw  new ValidationException("Максимальная длина описания — 200 символов");
+            throw new ValidationException("Максимальная длина описания — 200 символов");
         }
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года");
@@ -150,12 +152,12 @@ public class FilmService {
         }
         mpaDao.findMpaById(film.getMpa().getId());
         if (film.getGenres() != null) {
-            for (Genre genre: film.getGenres()) {
+            for (Genre genre : film.getGenres()) {
                 genreDao.findGenreById(genre.getId());
             }
         }
         if (film.getDirectors() != null) {
-            for (Director director: film.getDirectors()) {
+            for (Director director : film.getDirectors()) {
                 directorService.findById(director.getId());
             }
         }

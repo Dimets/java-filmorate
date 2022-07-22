@@ -219,8 +219,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> searchFilmByDirector (String query) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException{
+    public List<Film> searchFilmByDirector(String query) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
 
         SqlRowSet filmsRows = getFilmIdsByDirector(query);
 
@@ -232,12 +232,13 @@ public class FilmDbStorage implements FilmStorage {
 
         return filmList;
     }
+
     @Override
-    public List<Film> searchFilmByTitle (String query) throws UnknownMpaException,
-    UnknownGenreException, UnknownUserException, UnknownDirectorException{
+    public List<Film> searchFilmByTitle(String query) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException, UnknownDirectorException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
                 "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
-                "WHERE upper(f.name) like upper(?) ", "%"+query+"%");
+                "WHERE upper(f.name) like upper(?) ", "%" + query + "%");
 
         List<Film> filmList = new ArrayList<>();
 
@@ -263,7 +264,7 @@ public class FilmDbStorage implements FilmStorage {
                 "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id" +
                 "       right join FILM_DIRECTOR FD on f.id = FD.FILM_ID " +
                 "        join DIRECTOR d on fd.director_id = d.id WHERE upper(d.director_name) like upper(?)  ";
-        return jdbcTemplate.queryForRowSet(sql, "%"+query+"%");
+        return jdbcTemplate.queryForRowSet(sql, "%" + query + "%");
     }
 
     private SqlRowSet getPopularByYear(Integer count, Integer year) {

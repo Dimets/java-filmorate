@@ -4,16 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.FriendException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
@@ -80,5 +76,11 @@ public class UserController {
                                         @PathVariable("otherUserId") int otherUserId) throws UnknownUserException {
         log.info("GET /common friends");
         return userService.getCommonFriends(userId, otherUserId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<Film> getRecommendations(@PathVariable int id) throws UnknownMpaException, UnknownGenreException,
+            UnknownUserException, UnknownDirectorException, UnknownFilmException {
+        return userService.getRecommendations(id);
     }
 }

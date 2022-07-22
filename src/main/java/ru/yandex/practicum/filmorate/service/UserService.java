@@ -3,18 +3,22 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.yandex.practicum.filmorate.dao.FriendDao;
-import ru.yandex.practicum.filmorate.exception.FriendException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -23,7 +27,10 @@ public class UserService {
     @Qualifier("userDbStorage")
     private UserStorage userStorage;
     @Autowired
-    private  FriendDao friendDao;
+    private FriendDao friendDao;
+    @Lazy
+    @Autowired
+    private FilmService filmService;
 
     public User create(User user) throws ValidationException {
         validateUser(user);
@@ -70,14 +77,14 @@ public class UserService {
         if (!StringUtils.hasText(user.getName())) {
             user.setName(user.getLogin());
         }
-        if (user.getBirthday() !=null && user.getBirthday().isAfter(LocalDate.now())) {
+        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("Дата рождения не может быть в будущем");
         }
     }
 
     public void addFriend(int userId, int friendId) throws UnknownUserException, FriendException {
         checkExistUserAndFriend(userId, friendId);
-        if (getUserFriends(userId).contains(friendId)){
+        if (getUserFriends(userId).contains(friendId)) {
             throw new FriendException((String.format("Пользователь с id=%d уже есть в списке друзей пользователя" +
                     " с id=%d", friendId, userId)));
         }
@@ -91,7 +98,7 @@ public class UserService {
             friendDao.deleteFriend(userId, friendId);
             log.info(String.format("Пользователь с id=%d удален из друзей пользователя с id=%d:", friendId, userId));
             friendDao.deleteFriend(friendId, userId);
-            log.info(String.format("Пользователь с id=%d удален из друзей пользователя с id=%d:", userId,friendId));
+            log.info(String.format("Пользователь с id=%d удален из друзей пользователя с id=%d:", userId, friendId));
         } else {
             throw new FriendException((String.format("Пользователя с id=%d нет в списке друзей пользователя" +
                     " с id=%d", friendId, userId)));
@@ -100,7 +107,7 @@ public class UserService {
 
     public List<User> getUserFriends(int userId) throws UnknownUserException {
         List<User> userFriends = new ArrayList<>();
-        if (userStorage.getUserById(userId).isEmpty()){
+        if (userStorage.getUserById(userId).isEmpty()) {
             throw new UnknownUserException(String.format("Пользователь с id=%d отсутствует", userId));
         }
         for (int i : friendDao.getUserFriends(userId)) {
@@ -132,4 +139,52 @@ public class UserService {
         }*/
     }
 
+    public List<Film> getRecommendations(int id) throws UnknownUserException, UnknownMpaException, UnknownGenreException,
+            UnknownDirectorException, UnknownFilmException {
+        if (findById(id) != null) {
+
+            User user = findById(id);
+            List<Film> userListFilm = filmService.getUserFilms(id);
+
+            List<User> allUsers = findAll();
+            allUsers.remove(user);
+
+            Map<User, List<Film>> userListMap = allUsers.stream()
+                    .collect(Collectors.toMap(Function.identity(), u -> {
+                        try {
+                            return filmService.getUserFilms(u.getId());
+                        } catch (UnknownMpaException | UnknownUserException | UnknownGenreException |
+                                 UnknownDirectorException | UnknownFilmException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }));
+
+            int maxFreq = 0;
+            Map<User, Integer> sameUser = new HashMap<>();
+            for (Map.Entry<User, List<Film>> entry : userListMap.entrySet()) {
+                int freq = 0;
+                for (Film film : entry.getValue()) {
+                    if (userListFilm.contains(film)) {
+                        freq++;
+                    }
+                }
+                if (freq > maxFreq) {
+                    maxFreq = freq;
+                }
+                sameUser.put(entry.getKey(), freq);
+            }
+
+            List<Film> recommendation = new ArrayList<>();
+            for (Map.Entry<User, Integer> userEntry : sameUser.entrySet()) {
+                if (userListMap.get(userEntry.getKey()).size() > maxFreq) {
+                    List<Film> diff = userListMap.get(userEntry.getKey());
+                    diff.removeAll(userListFilm);
+                    recommendation.addAll(diff);
+                }
+            }
+
+            return recommendation;
+        }
+        throw new UnknownUserException(String.format("Пользователь с id=%d отсутствует", id));
+    }
 }
