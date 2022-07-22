@@ -16,6 +16,12 @@ public interface FilmStorage {
 
     void deleteFilm(int id);
 
+    List<Film> searchFilmByDirector (String query) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException, UnknownDirectorException;
+
+    List<Film> searchFilmByTitle (String query) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException, UnknownDirectorException;
+
     Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
 
     List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;

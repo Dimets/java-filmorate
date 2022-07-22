@@ -218,6 +218,35 @@ public class FilmDbStorage implements FilmStorage {
         return filmList;
     }
 
+    @Override
+    public List<Film> searchFilmByDirector (String query) throws UnknownMpaException,
+            UnknownGenreException, UnknownUserException, UnknownDirectorException{
+
+        SqlRowSet filmsRows = getFilmIdsByDirector(query);
+
+        List<Film> filmList = new ArrayList<>();
+
+        while (filmsRows.next()) {
+            filmList.add(getFilmById(filmsRows.getInt("id")).get());
+        }
+
+        return filmList;
+    }
+    @Override
+    public List<Film> searchFilmByTitle (String query) throws UnknownMpaException,
+    UnknownGenreException, UnknownUserException, UnknownDirectorException{
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
+                "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
+                "WHERE upper(f.name) like upper(?) ", "%"+query+"%");
+
+        List<Film> filmList = new ArrayList<>();
+
+        while (filmRows.next()) {
+            filmList.add(getFilmById(filmRows.getInt("id")).get());
+        }
+        return filmList;
+    }
+
     private SqlRowSet getPopularByGenre(Integer count, Integer genreId) {
         String sql = "SELECT f.id FROM film as f " +
                 "LEFT JOIN " +
@@ -226,6 +255,15 @@ public class FilmDbStorage implements FilmStorage {
                 "        WHERE fg.GENRE_ID=?\n" +
                 "ORDER BY likes_count DESC LIMIT ?";
         return jdbcTemplate.queryForRowSet(sql, genreId, count);
+    }
+
+    private SqlRowSet getFilmIdsByDirector(String query) {
+        String sql = "SELECT f.id FROM film as f " +
+                "LEFT JOIN " +
+                "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id" +
+                "       right join FILM_DIRECTOR FD on f.id = FD.FILM_ID " +
+                "        join DIRECTOR d on fd.director_id = d.id WHERE upper(d.director_name) like upper(?)  ";
+        return jdbcTemplate.queryForRowSet(sql, "%"+query+"%");
     }
 
     private SqlRowSet getPopularByYear(Integer count, Integer year) {
