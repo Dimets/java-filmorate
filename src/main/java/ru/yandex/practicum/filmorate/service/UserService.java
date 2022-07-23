@@ -141,50 +141,46 @@ public class UserService {
 
     public List<Film> getRecommendations(int id) throws UnknownUserException, UnknownMpaException, UnknownGenreException,
             UnknownDirectorException, UnknownFilmException {
-        if (findById(id) != null) {
 
-            User user = findById(id);
-            List<Film> userListFilm = filmService.getUserFilms(id);
+        User user = findById(id);
+        List<Film> userListFilm = filmService.getUserFilms(id);
 
-            List<User> allUsers = findAll();
-            allUsers.remove(user);
+        List<User> allUsers = findAll();
+        allUsers.remove(user);
 
-            Map<User, List<Film>> userListMap = allUsers.stream()
-                    .collect(Collectors.toMap(Function.identity(), u -> {
-                        try {
-                            return filmService.getUserFilms(u.getId());
-                        } catch (UnknownMpaException | UnknownUserException | UnknownGenreException |
-                                 UnknownDirectorException | UnknownFilmException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }));
-
-            int maxFreq = 0;
-            Map<User, Integer> sameUser = new HashMap<>();
-            for (Map.Entry<User, List<Film>> entry : userListMap.entrySet()) {
-                int freq = 0;
-                for (Film film : entry.getValue()) {
-                    if (userListFilm.contains(film)) {
-                        freq++;
+        Map<User, List<Film>> userListMap = allUsers.stream()
+                .collect(Collectors.toMap(Function.identity(), u -> {
+                    try {
+                        return filmService.getUserFilms(u.getId());
+                    } catch (UnknownMpaException | UnknownDirectorException | UnknownUserException |
+                             UnknownGenreException | UnknownFilmException e) {
+                        throw new RuntimeException(e);
                     }
-                }
-                if (freq > maxFreq) {
-                    maxFreq = freq;
-                }
-                sameUser.put(entry.getKey(), freq);
-            }
+                }));
 
-            List<Film> recommendation = new ArrayList<>();
-            for (Map.Entry<User, Integer> userEntry : sameUser.entrySet()) {
-                if (userListMap.get(userEntry.getKey()).size() > maxFreq) {
-                    List<Film> diff = userListMap.get(userEntry.getKey());
-                    diff.removeAll(userListFilm);
-                    recommendation.addAll(diff);
+        int maxFreq = 0;
+        Map<User, Integer> sameUser = new HashMap<>();
+        for (Map.Entry<User, List<Film>> entry : userListMap.entrySet()) {
+            int freq = 0;
+            for (Film film : entry.getValue()) {
+                if (userListFilm.contains(film)) {
+                    freq++;
                 }
             }
-
-            return recommendation;
+            if (freq > maxFreq) {
+                maxFreq = freq;
+            }
+            sameUser.put(entry.getKey(), freq);
         }
-        throw new UnknownUserException(String.format("Пользователь с id=%d отсутствует", id));
+
+        List<Film> recommendation = new ArrayList<>();
+        for (Map.Entry<User, Integer> userEntry : sameUser.entrySet()) {
+            if (userListMap.get(userEntry.getKey()).size() > maxFreq) {
+                List<Film> diff = userListMap.get(userEntry.getKey());
+                diff.removeAll(userListFilm);
+                recommendation.addAll(diff);
+            }
+        }
+        return recommendation;
     }
 }
