@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -148,15 +146,10 @@ public class UserService {
         List<User> allUsers = findAll();
         allUsers.remove(user);
 
-        Map<User, List<Film>> userListMap = allUsers.stream()
-                .collect(Collectors.toMap(Function.identity(), u -> {
-                    try {
-                        return filmService.getUserFilms(u.getId());
-                    } catch (UnknownMpaException | UnknownDirectorException | UnknownUserException |
-                             UnknownGenreException | UnknownFilmException e) {
-                        throw new RuntimeException(e);
-                    }
-                }));
+        Map<User, List<Film>> userListMap = new HashMap<>();
+        for (User u : allUsers) {
+            userListMap.put(u, filmService.getUserFilms(u.getId()));
+        }
 
         int maxFreq = 0;
         Map<User, Integer> sameUser = new HashMap<>();
