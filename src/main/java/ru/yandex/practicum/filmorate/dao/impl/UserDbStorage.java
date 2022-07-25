@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Component("userDbStorage")
 public class UserDbStorage implements UserStorage {
-    private  final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
