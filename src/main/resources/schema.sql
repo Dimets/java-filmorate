@@ -164,10 +164,10 @@ create table IF NOT EXISTS USER_FEED
     constraint USER_FEED_FEED_OPERATION_ID_FK
         foreign key (OPERATION_ID) references FEED_OPERATION,
     constraint USER_FEED_FEED_TYPE_ID_FK
-        foreign key (TYPE_ID) references FEED_TYPE /*,
+        foreign key (TYPE_ID) references FEED_TYPE,
     constraint USER_FEED_USERS_ID_FK
         foreign key (USER_ID) references USERS
-        on delete cascade*/
+        on delete cascade
 );
 
 create unique index IF NOT EXISTS USER_FEED_ID_UINDEX
