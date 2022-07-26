@@ -40,17 +40,9 @@ public class FeedDaoImpl implements FeedDao {
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sql, new String[]{"id"});
             stmt.setLong(1, feed.getTimestamp());
-            try {
-                stmt.setInt(2, feedTypeDao.getFeedTypeByType(feed.getEventType()).get().getId());
-            } catch (UnknownFeedTypeException e) {
-                throw new RuntimeException(e);
-            }
-            try {
-                stmt.setInt(3, feedOperationDao.getFeedOperationByOperation(
+            stmt.setInt(2, feedTypeDao.getFeedTypeByType(feed.getEventType()).get().getId());
+            stmt.setInt(3, feedOperationDao.getFeedOperationByOperation(
                         feed.getOperation()).get().getId());
-            } catch (UnknownFeedOperationException e) {
-                throw new RuntimeException(e);
-            }
             stmt.setLong(4, feed.getEntityId());
             stmt.setInt(5, feed.getUserId());
             return stmt;
