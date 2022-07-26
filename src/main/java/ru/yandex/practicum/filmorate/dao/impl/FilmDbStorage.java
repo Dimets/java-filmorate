@@ -33,7 +33,6 @@ public class FilmDbStorage implements FilmStorage {
     private final FilmDirectorDao filmDirectorDao;
     private final FilmLikeDao filmLikeDao;
     private final UserService userService;
-
     private final DirectorService directorService;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaService mpaService, FilmGenreDao filmGenreDao,

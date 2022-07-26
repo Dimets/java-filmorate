@@ -5,12 +5,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.FeedDao;
 import ru.yandex.practicum.filmorate.dao.ReviewDao;
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -20,10 +23,12 @@ import java.util.stream.Collectors;
 public class ReviewDaoImpl implements ReviewDao {
 
     private final JdbcTemplate jdbcTemplate;
+    private final FeedDao feedDao;
 
 
-    public ReviewDaoImpl(JdbcTemplate jdbcTemplate) {
+    public ReviewDaoImpl(JdbcTemplate jdbcTemplate, FeedDao feedDao) {
         this.jdbcTemplate = jdbcTemplate;
+        this.feedDao = feedDao;
     }
 
     @Override
@@ -41,6 +46,8 @@ public class ReviewDaoImpl implements ReviewDao {
         }, keyHolder);
 
         review.setReviewId(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        feedDao.createFeed(new Feed("REVIEW", "ADD", review.getReviewId(),
+                review.getUserId(), Instant.now().toEpochMilli()));
         return review;
     }
 
@@ -48,13 +55,18 @@ public class ReviewDaoImpl implements ReviewDao {
     public Review updateReview(Review review) {
         String sql = "UPDATE REVIEW SET CONTENT=?, IS_POSITIVE=? WHERE ID=?";
         jdbcTemplate.update(sql, review.getContent(), review.getIsPositive(), review.getReviewId());
+        feedDao.createFeed(new Feed("REVIEW", "UPDATE", review.getReviewId(),
+                getReviewById(review.getReviewId()).getUserId(), Instant.now().toEpochMilli()));
         return review;
     }
 
     @Override
-    public void deleteReview(int id) {
+    public void deleteReview(long id) {
         String sql = "DELETE FROM REVIEW WHERE ID=?";
+        feedDao.createFeed(new Feed("REVIEW", "REMOVE", id,
+                getReviewById(id).getUserId(), Instant.now().toEpochMilli()));
         jdbcTemplate.update(sql, id);
+
     }
 
     @Override

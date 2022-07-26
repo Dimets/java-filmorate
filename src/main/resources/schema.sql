@@ -154,7 +154,7 @@ create unique index IF NOT EXISTS FEED_OPERATION_ID_UINDEX
 create table IF NOT EXISTS USER_FEED
 (
     ID           integer auto_increment,
-    CREATE_DTTM  datetime,
+    CREATE_DTTM  long,
     TYPE_ID      integer,
     OPERATION_ID integer,
     ENTITY_ID    integer,
@@ -167,7 +167,7 @@ create table IF NOT EXISTS USER_FEED
         foreign key (TYPE_ID) references FEED_TYPE,
     constraint USER_FEED_USERS_ID_FK
         foreign key (USER_ID) references USERS
-            on delete cascade
+        on delete cascade
 );
 
 create unique index IF NOT EXISTS USER_FEED_ID_UINDEX

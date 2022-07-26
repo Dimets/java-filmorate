@@ -5,7 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.ReviewDao;
-import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
+import ru.yandex.practicum.filmorate.exception.UnknownReviewException;
+import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
@@ -15,7 +18,6 @@ import java.util.List;
 public class ReviewService {
 
     private final ReviewDao reviewDao;
-
     @Autowired
     public ReviewService(ReviewDao reviewDao) {
         this.reviewDao = reviewDao;

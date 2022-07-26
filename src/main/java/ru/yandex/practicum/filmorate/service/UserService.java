@@ -6,12 +6,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import ru.yandex.practicum.filmorate.dao.FeedDao;
 import ru.yandex.practicum.filmorate.dao.FriendDao;
 import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +32,9 @@ public class UserService {
     @Lazy
     @Autowired
     private FilmService filmService;
+
+    @Autowired
+    private FeedDao feedDao;
 
     public User create(User user) throws ValidationException {
         validateUser(user);
@@ -87,6 +93,8 @@ public class UserService {
                     " с id=%d", friendId, userId)));
         }
         friendDao.addFriend(userId, friendId);
+        feedDao.createFeed(new Feed("FRIEND", "ADD",(long) friendId, userId,
+                Instant.now().toEpochMilli()));
         log.info(String.format("Пользователь с id=%d добавлен в друзья к пользователю с id=%d:", friendId, userId));
     }
 
@@ -97,6 +105,8 @@ public class UserService {
             log.info(String.format("Пользователь с id=%d удален из друзей пользователя с id=%d:", friendId, userId));
             friendDao.deleteFriend(friendId, userId);
             log.info(String.format("Пользователь с id=%d удален из друзей пользователя с id=%d:", userId, friendId));
+            feedDao.createFeed(new Feed("FRIEND", "REMOVE",(long) friendId, userId,
+                    Instant.now().toEpochMilli()));
         } else {
             throw new FriendException((String.format("Пользователя с id=%d нет в списке друзей пользователя" +
                     " с id=%d", friendId, userId)));
@@ -128,13 +138,6 @@ public class UserService {
 
         userStorage.getUserById(friendId).orElseThrow(() -> new UnknownUserException(
                 String.format("Пользователь с id=%d не существует", friendId)));
-/*
-        if (userStorage.getUserById(userId) == null) {
-            throw new UnknownUserException(String.format("Пользователь с id=%d не существует", userId));
-        }
-        if (userStorage.getUserById(friendId) == null) {
-            throw new UnknownUserException((String.format("Пользователь с id=%d не существует", friendId)));
-        }*/
     }
 
     public List<Film> getRecommendations(int id) throws UnknownUserException, UnknownMpaException, UnknownGenreException,
@@ -176,4 +179,9 @@ public class UserService {
         }
         return recommendation;
     }
+
+    public List<Feed> getFeeds(int userId) throws UnknownFeedTypeException, UnknownFeedOperationException {
+        return feedDao.getFeedByUser(userId);
+    }
+
 }
