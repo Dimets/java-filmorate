@@ -19,12 +19,12 @@ public class FeedTypeDaoImpl implements FeedTypeDao {
         this.jdbcTemplate = jdbcTemplate;
     }
     @Override
-    public Optional<FeedType> getFeedTypeByName(String type) throws UnknownFeedTypeException {
+    public FeedType getFeedTypeByName(String type) throws UnknownFeedTypeException {
         SqlRowSet feedTypeRow = jdbcTemplate.queryForRowSet("SELECT * FROM FEED_TYPE WHERE TYPE = ?", type);
         if (feedTypeRow.next()) {
             FeedType feedType = new FeedType(feedTypeRow.getString("type"));
             feedType.setId(feedTypeRow.getInt("id"));
-            return Optional.of(feedType);
+            return feedType;
         } else {
             throw new UnknownFeedTypeException(String.format("Тип события %s не найден", type));
         }

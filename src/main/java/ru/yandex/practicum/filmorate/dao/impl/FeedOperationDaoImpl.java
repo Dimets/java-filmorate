@@ -20,13 +20,13 @@ public class FeedOperationDaoImpl implements FeedOperationDao {
     }
 
     @Override
-    public Optional<FeedOperation> getFeedOperationByName(String operation) throws UnknownFeedOperationException {
+    public FeedOperation getFeedOperationByName(String operation) throws UnknownFeedOperationException {
         SqlRowSet feedOperationRows = jdbcTemplate.queryForRowSet(
                 "select * from feed_operation where operation = ?", operation);
         if (feedOperationRows.next()) {
             FeedOperation feedOperation = new FeedOperation(feedOperationRows.getString("operation"));
             feedOperation.setId(feedOperationRows.getInt("id"));
-            return Optional.of(feedOperation);
+            return feedOperation;
         } else {
             throw new UnknownFeedOperationException(String.format(
                     "Операция %s для события ленты не существует", operation));

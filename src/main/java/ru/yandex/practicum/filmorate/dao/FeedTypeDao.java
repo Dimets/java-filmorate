@@ -6,5 +6,5 @@ import ru.yandex.practicum.filmorate.model.FeedType;
 import java.util.Optional;
 
 public interface FeedTypeDao {
-    Optional<FeedType> getFeedTypeByName(String type) throws UnknownFeedTypeException;
+    FeedType getFeedTypeByName(String type) throws UnknownFeedTypeException;
 }

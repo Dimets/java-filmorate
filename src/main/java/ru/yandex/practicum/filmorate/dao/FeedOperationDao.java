@@ -6,5 +6,5 @@ import ru.yandex.practicum.filmorate.model.FeedOperation;
 import java.util.Optional;
 
 public interface FeedOperationDao {
-    Optional<FeedOperation> getFeedOperationByName(String operation) throws UnknownFeedOperationException;
+    FeedOperation getFeedOperationByName(String operation) throws UnknownFeedOperationException;
 }
