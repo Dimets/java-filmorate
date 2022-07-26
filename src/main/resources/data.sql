@@ -13,9 +13,17 @@ insert into RATING_MPA (RATING_NAME) values ('R');
 insert into RATING_MPA (RATING_NAME) values ('NC-17');
 
 insert into FRIENDS_STATUS (STATUS_NAME)
-values ('Requested');
+values ('REQUESTED');
 insert into FRIENDS_STATUS (STATUS_NAME)
-values ('Accepted');
+values ('ACCEPTED');
+
+insert into FEED_TYPE(TYPE) values ('LIKE');
+insert into FEED_TYPE(TYPE) values ('REVIEW');
+insert into FEED_TYPE(TYPE) values ('FRIEND');
+
+insert into FEED_OPERATION(OPERATION) values ('REMOVE');
+insert into FEED_OPERATION(OPERATION) values ('ADD');
+insert into FEED_OPERATION(OPERATION) values ('UPDATE');
 
 /*
 insert into FILM (NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, RATING_MPA_ID)

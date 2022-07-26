@@ -6,15 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import ru.yandex.practicum.filmorate.dao.FeedDao;
 import ru.yandex.practicum.filmorate.dao.FilmLikeDao;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Feed;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +38,8 @@ public class FilmService {
     private final DirectorService directorService;
     private final GenreDao genreDao;
     private final MpaDao mpaDao;
+    @Autowired
+    private final FeedDao feedDao;
 
     public Film create(Film film) throws ValidationException, UnknownMpaException,
             UnknownGenreException, UnknownUserException, UnknownDirectorException {
@@ -74,6 +79,8 @@ public class FilmService {
             UnknownMpaException, UnknownGenreException, UnknownDirectorException {
         checkExistFilmAndUser(filmId, userId);
         filmLikeDao.addFilmLike(filmId, userId);
+        feedDao.createFeed(new Feed("LIKE", "ADD",(long) filmId, userId,
+                Instant.now().toEpochMilli()));
         log.info(String.format("Лайк пользователя id=%d добавлен к фильму id=%d", userId, filmId));
     }
 
@@ -81,6 +88,8 @@ public class FilmService {
             UnknownMpaException, UnknownGenreException, UnknownDirectorException {
         checkExistFilmAndUser(filmId, userId);
         filmLikeDao.deleteFilmLike(filmId, userId);
+        feedDao.createFeed(new Feed("LIKE", "REMOVE",(long) filmId, userId,
+                Instant.now().toEpochMilli()));
         log.info(String.format("Лайк пользователя id=%d удален у фильма id=%d", userId, filmId));
     }
 

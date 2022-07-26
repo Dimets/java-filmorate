@@ -1,4 +1,4 @@
-/*package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
@@ -236,4 +236,4 @@ class FilmoRateApplicationTests {
 		friendDao.addFriend(5,4);
 		Assertions.assertEquals(friendsCount + 1, friendDao.getUserFriends(5).size());
 	}
-}*/
+}
