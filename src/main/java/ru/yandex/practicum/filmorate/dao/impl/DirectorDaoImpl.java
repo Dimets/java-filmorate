@@ -6,9 +6,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-//import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.dao.DirectorDao;
+import ru.yandex.practicum.filmorate.model.Director;
 
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ import java.util.Optional;
 public class DirectorDaoImpl implements DirectorDao {
     private final JdbcTemplate jdbcTemplate;
 
-    public DirectorDaoImpl(JdbcTemplate jdbcTemplate) /*throws UnknownDirectorException*/ {
+    public DirectorDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -36,7 +35,6 @@ public class DirectorDaoImpl implements DirectorDao {
             return stmt;
         }, keyHolder);
         director.setId(keyHolder.getKey().intValue());
-        //return getUserById(keyHolder.getKey().intValue()).get();
         return getDirectorById(director.getId()).get();
     }
 

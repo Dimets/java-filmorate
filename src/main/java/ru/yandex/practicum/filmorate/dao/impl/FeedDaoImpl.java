@@ -38,7 +38,7 @@ public class FeedDaoImpl implements FeedDao {
             PreparedStatement stmt = connection.prepareStatement(sql, new String[]{"id"});
             stmt.setLong(1, feed.getTimestamp());
             stmt.setInt(2, feedTypeDao.getFeedTypeByName(feed.getEventType()).getId());
-            stmt.setInt(3, feedOperationDao.getFeedOperationByName(
+            stmt.setInt(3, feedOperationDao.getFeedOperationByOperationName(
                         feed.getOperation()).getId());
             stmt.setLong(4, feed.getEntityId());
             stmt.setInt(5, feed.getUserId());

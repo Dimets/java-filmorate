@@ -29,19 +29,19 @@ public class ReviewController {
     }
 
     @PostMapping
-    public Review createReview(@RequestBody Review review) throws ValidationException, UnknownFilmException, UnknownUserException {
+    public Review createReview(@RequestBody Review review) throws ValidationException,EntityNotFoundException {
         log.info("POST /reviews {}", review);
         return reviewService.createReview(review);
     }
 
     @GetMapping("/{id}")
-    public Review getReviewById(@PathVariable int id) {
+    public Review getReviewById(@PathVariable int id) throws EntityNotFoundException {
         log.info("GET /reviews/" + id);
         return reviewService.getReviewById(id);
     }
 
     @PutMapping
-    public Review updateReview(@RequestBody Review review) throws ValidationException, UnknownFilmException, UnknownUserException {
+    public Review updateReview(@RequestBody Review review) throws ValidationException, EntityNotFoundException {
         log.info("PUT /reviews {}", review);
         return reviewService.updateReview(review);
     }

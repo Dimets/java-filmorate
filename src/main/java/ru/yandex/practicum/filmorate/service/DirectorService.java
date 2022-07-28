@@ -26,19 +26,19 @@ public class DirectorService {
         return director;
     }
 
-    public Director update(Director director) throws ValidationException, UnknownDirectorException {
+    public Director update(Director director) throws ValidationException, EntityNotFoundException {
         validateDirector(director);
-        directorStorage.getDirectorById(director.getId()).orElseThrow(() -> new UnknownDirectorException(
+        directorStorage.getDirectorById(director.getId()).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Режиссера с id=%d не существует", director.getId())));
         return directorStorage.updateDirector(director);
     }
 
-    public void deleteById(int id) throws UnknownDirectorException {
+    public void deleteById(int id) throws EntityNotFoundException {
         if (directorStorage.getDirectorById(id).isPresent()) {
             log.info(String.format("Режиссер с id=%d удален:", id) + directorStorage.getDirectorById(id));
             directorStorage.deleteDirector(id);
         } else {
-            throw new UnknownDirectorException(String.format("Режиссера с id=%d не существует", id));
+            throw new EntityNotFoundException(String.format("Режиссера с id=%d не существует", id));
         }
     }
 
@@ -47,8 +47,8 @@ public class DirectorService {
         return directorStorage.getAllDirectors();
     }
 
-    public Director findById(int id) throws UnknownDirectorException {
-        return directorStorage.getDirectorById(id).orElseThrow(() -> new UnknownDirectorException(
+    public Director findById(int id) throws EntityNotFoundException {
+        return directorStorage.getDirectorById(id).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Режиссера с id=%d не существует", id)));
     }
 

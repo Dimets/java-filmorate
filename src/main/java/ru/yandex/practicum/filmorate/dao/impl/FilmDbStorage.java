@@ -9,10 +9,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FilmDirectorDao;
 import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
 import ru.yandex.practicum.filmorate.dao.FilmLikeDao;
-import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
-import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
-import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.DirectorService;
@@ -34,6 +31,8 @@ public class FilmDbStorage implements FilmStorage {
     private final FilmLikeDao filmLikeDao;
     private final UserService userService;
     private final DirectorService directorService;
+    final String SORT_BY_YEAR = "year";
+    final String SORT_BY_LIKES = "likes";
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaService mpaService, FilmGenreDao filmGenreDao,
                          FilmDirectorDao filmDirectorDao, FilmLikeDao filmLikeDao, UserService userService, DirectorService directorService) {
@@ -47,7 +46,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film createFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public Film createFilm(Film film) throws EntityNotFoundException {
         String sql = "insert into film (name, description, release_date, duration,rating_mpa_id, rate) " +
                 "values (?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -75,7 +74,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film updateFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public Film updateFilm(Film film) throws EntityNotFoundException {
         if (film.equals(getFilmById(film.getId()))) {
             log.info("Фильм id={} не изменился", film.getId());
         } else {
@@ -116,7 +115,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public Optional<Film> getFilmById(int id) throws EntityNotFoundException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("select * from film where id = ?", id);
         Set<User> userLikesSet = new HashSet<>();
 
@@ -144,7 +143,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> getAllFilms() throws EntityNotFoundException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM");
 
         List<Film> filmList = new ArrayList<>();
@@ -156,7 +155,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> getPopular(int count) throws EntityNotFoundException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
                 "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
                 "ORDER BY likes_count DESC LIMIT ?", count);
@@ -170,15 +169,15 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularByDirector(int id, String sortBy) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> getPopularByDirector(int id, String sortBy) throws EntityNotFoundException {
         SqlRowSet filmRows = null;
         directorService.findById(id);
-        if (Objects.equals(sortBy, "year")) {
+        if (Objects.equals(sortBy, SORT_BY_YEAR)) {
             filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
                     "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
                     "LEFT JOIN FILM_DIRECTOR fd on f.id = fd.film_id WHERE fd.director_id = ? " +
                     "ORDER BY YEAR(f.release_date)", id);
-        } else if (Objects.equals(sortBy, "likes")) {
+        } else if (Objects.equals(sortBy, SORT_BY_LIKES)) {
             filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
                     "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
                     "LEFT JOIN FILM_DIRECTOR fd on f.id = fd.film_id WHERE fd.director_id = ? " +
@@ -192,8 +191,8 @@ public class FilmDbStorage implements FilmStorage {
         return filmList;
     }
 
-    public List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year)
+            throws EntityNotFoundException {
         SqlRowSet popularFilmsRows;
         if (genreId.isEmpty()) {
             popularFilmsRows = getPopularByYear(count, year.get());
@@ -218,8 +217,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> searchFilmByDirector(String query) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> searchFilmByDirector(String query) throws EntityNotFoundException {
 
         SqlRowSet filmsRows = getFilmIdsByDirector(query);
 
@@ -233,8 +231,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> searchFilmByTitle(String query) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> searchFilmByTitle(String query) throws EntityNotFoundException {
         SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILM f LEFT JOIN " +
                 "(SELECT film_id, count(user_id) likes_count FROM FILM_LIKE group by film_id) fl ON fl.film_id = f.id " +
                 "WHERE upper(f.name) like upper(?) ", "%" + query + "%");

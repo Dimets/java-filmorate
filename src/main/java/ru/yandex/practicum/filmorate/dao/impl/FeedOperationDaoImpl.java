@@ -5,10 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FeedOperationDao;
-import ru.yandex.practicum.filmorate.exception.UnknownFeedOperationException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.FeedOperation;
-
-import java.util.Optional;
 
 @Component
 @Slf4j
@@ -20,7 +18,7 @@ public class FeedOperationDaoImpl implements FeedOperationDao {
     }
 
     @Override
-    public FeedOperation getFeedOperationByName(String operation) throws UnknownFeedOperationException {
+    public FeedOperation getFeedOperationByOperationName(String operation) throws EntityNotFoundException {
         SqlRowSet feedOperationRows = jdbcTemplate.queryForRowSet(
                 "select * from feed_operation where operation = ?", operation);
         if (feedOperationRows.next()) {
@@ -28,7 +26,7 @@ public class FeedOperationDaoImpl implements FeedOperationDao {
             feedOperation.setId(feedOperationRows.getInt("id"));
             return feedOperation;
         } else {
-            throw new UnknownFeedOperationException(String.format(
+            throw new EntityNotFoundException(String.format(
                     "Операция %s для события ленты не существует", operation));
         }
     }

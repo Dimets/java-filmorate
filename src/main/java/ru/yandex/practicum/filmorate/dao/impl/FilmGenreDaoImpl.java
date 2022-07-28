@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
-import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.GenreService;
@@ -25,7 +25,7 @@ public class FilmGenreDaoImpl implements FilmGenreDao {
     }
 
     @Override
-    public Set<Genre> getFilmGenres(int id) throws UnknownGenreException {
+    public Set<Genre> getFilmGenres(int id) throws EntityNotFoundException {
         SqlRowSet filmGenreRows = jdbcTemplate.queryForRowSet("select * from film_genre where film_id = ?", id);
         Set<Genre> filmGenreSet = new TreeSet<>();
 

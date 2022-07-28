@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
-import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
@@ -18,9 +18,9 @@ public class GenreService {
         this.genreDao = genreDao;
     }
 
-    public Optional<Genre> findById(int id) throws UnknownGenreException {
+    public Optional<Genre> findById(int id) throws EntityNotFoundException {
         if (genreDao.findGenreById(id).isEmpty()) {
-            throw new UnknownGenreException(String.format("Жанр с id=%d не существует", id));
+            throw new EntityNotFoundException(String.format("Жанр с id=%d не существует", id));
         }
         return genreDao.findGenreById(id);
     }

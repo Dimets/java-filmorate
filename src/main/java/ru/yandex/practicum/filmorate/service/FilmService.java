@@ -41,42 +41,37 @@ public class FilmService {
     @Autowired
     private final FeedDao feedDao;
 
-    public Film create(Film film) throws ValidationException, UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public Film create(Film film) throws ValidationException, EntityNotFoundException {
         validateFilm(film);
         return filmStorage.createFilm(film);
     }
 
-    public Film update(Film film) throws ValidationException, UnknownFilmException, UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public Film update(Film film) throws ValidationException, EntityNotFoundException {
         validateFilm(film);
-        filmStorage.getFilmById(film.getId()).orElseThrow(() -> new UnknownFilmException(
+        filmStorage.getFilmById(film.getId()).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Фильм с id=%d не существует", film.getId())));
         log.info("Фильм с id={} изменен", film.getId());
         return filmStorage.updateFilm(film);
     }
 
-    public void deleteById(int id) throws UnknownFilmException, UnknownMpaException, UnknownGenreException,
-            UnknownUserException, UnknownDirectorException {
-        filmStorage.getFilmById(id).orElseThrow(() -> new UnknownFilmException(
+    public void deleteById(int id) throws EntityNotFoundException {
+        filmStorage.getFilmById(id).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Фильм с id=%d не существует", id)));
         log.info("Фильм с id={} удален", id);
         filmStorage.deleteFilm(id);
     }
 
-    public List<Film> findAll() throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> findAll() throws EntityNotFoundException {
         log.info("Список фильмов получен size=: " + filmStorage.getAllFilms().size());
         return filmStorage.getAllFilms();
     }
 
-    public Film findById(int id) throws UnknownFilmException, UnknownMpaException, UnknownGenreException,
-            UnknownUserException, UnknownDirectorException {
-        return filmStorage.getFilmById(id).orElseThrow(() -> new UnknownFilmException(
+    public Film findById(int id) throws EntityNotFoundException {
+        return filmStorage.getFilmById(id).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Фильм с id=%d не существует", id)));
     }
 
-    public void addLike(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
-            UnknownMpaException, UnknownGenreException, UnknownDirectorException {
+    public void addLike(int filmId, int userId) throws EntityNotFoundException {
         checkExistFilmAndUser(filmId, userId);
         filmLikeDao.addFilmLike(filmId, userId);
         feedDao.createFeed(new Feed("LIKE", "ADD",(long) filmId, userId,
@@ -84,8 +79,7 @@ public class FilmService {
         log.info(String.format("Лайк пользователя id=%d добавлен к фильму id=%d", userId, filmId));
     }
 
-    public void deleteLike(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
-            UnknownMpaException, UnknownGenreException, UnknownDirectorException {
+    public void deleteLike(int filmId, int userId) throws EntityNotFoundException {
         checkExistFilmAndUser(filmId, userId);
         filmLikeDao.deleteFilmLike(filmId, userId);
         feedDao.createFeed(new Feed("LIKE", "REMOVE",(long) filmId, userId,
@@ -93,11 +87,11 @@ public class FilmService {
         log.info(String.format("Лайк пользователя id=%d удален у фильма id=%d", userId, filmId));
     }
 
-    public List<Film> findPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> findPopular(int count) throws EntityNotFoundException {
         return filmStorage.getPopular(count);
     }
 
-    public List<Film> searchFilms(String query, String by) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> searchFilms(String query, String by) throws EntityNotFoundException {
         String[] searchByArr = by.split(",");
         List<Film> foundFilms = new ArrayList<>();
         for (String nextBy : searchByArr) {
@@ -106,7 +100,7 @@ public class FilmService {
             } else if (nextBy.equalsIgnoreCase("title")) {
                 foundFilms.addAll(filmStorage.searchFilmByTitle(query));
             } else {
-                throw new UnknownSearchByException(String.format("невозможно искать по параметру %s.", nextBy));
+                throw new EntityNotFoundException(String.format("невозможно искать по параметру %s.", nextBy));
             }
         }
         Collections.sort(foundFilms, (film1, film2) -> {
@@ -117,13 +111,11 @@ public class FilmService {
         return foundFilms;
     }
 
-    public List<Film> findPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> findPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws EntityNotFoundException {
         return filmStorage.getPopular(count, genreId, year);
     }
 
-    public List<Film> getUserFilms(int userId) throws UnknownMpaException, UnknownFilmException, UnknownGenreException,
-            UnknownUserException, UnknownDirectorException {
+    public List<Film> getUserFilms(int userId) throws EntityNotFoundException {
         List<Film> userFilms = new ArrayList<>();
         for (int i : filmLikeDao.getUserLikes(userId)) {
             userFilms.add(findById(i));
@@ -132,8 +124,7 @@ public class FilmService {
         return userFilms;
     }
 
-    public List<Film> getCommonFilms(int userId, int friendId) throws UnknownMpaException, UnknownFilmException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> getCommonFilms(int userId, int friendId) throws EntityNotFoundException {
         List<Film> result = new ArrayList<>();
         result.addAll(getUserFilms(userId));
         result.retainAll(getUserFilms(friendId));
@@ -142,11 +133,11 @@ public class FilmService {
         return result;
     }
 
-    public List<Film> findPopularByDirector(int id, String sortBy) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException {
+    public List<Film> findPopularByDirector(int id, String sortBy) throws EntityNotFoundException {
         return filmStorage.getPopularByDirector(id, sortBy);
     }
 
-    public void validateFilm(Film film) throws ValidationException, UnknownDirectorException, UnknownGenreException, UnknownMpaException {
+    public void validateFilm(Film film) throws ValidationException, EntityNotFoundException {
         if (!StringUtils.hasText(film.getName())) {
             throw new ValidationException("Название фильма не может быть пустым");
         }
@@ -172,9 +163,8 @@ public class FilmService {
         }
     }
 
-    void checkExistFilmAndUser(int filmId, int userId) throws UnknownFilmException, UnknownUserException,
-            UnknownMpaException, UnknownGenreException, UnknownDirectorException {
-        filmStorage.getFilmById(filmId).orElseThrow(() -> new UnknownFilmException(
+    void checkExistFilmAndUser(int filmId, int userId) throws EntityNotFoundException {
+        filmStorage.getFilmById(filmId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Фильм с id=%d не существует", filmId)));
         userService.findById(userId);
     }

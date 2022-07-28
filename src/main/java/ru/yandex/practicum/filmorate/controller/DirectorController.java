@@ -2,13 +2,10 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 
 import java.util.List;
@@ -31,13 +28,13 @@ public class DirectorController {
     }
 
     @PutMapping()
-    public Director update(@RequestBody Director director) throws ValidationException, UnknownDirectorException {
+    public Director update(@RequestBody Director director) throws ValidationException, EntityNotFoundException {
         log.info("PUT /directors {}", director);
         return directorService.update(director);
     }
 
     @DeleteMapping("/{directorId}")
-    public void delete(@PathVariable("directorId") int directorId) throws UnknownDirectorException {
+    public void delete(@PathVariable("directorId") int directorId) throws EntityNotFoundException {
         log.info("DELETE /directors/" + directorId);
         directorService.deleteById(directorId);
     }
@@ -49,7 +46,7 @@ public class DirectorController {
     }
 
     @GetMapping("/{directorId}")
-    public Director findDirector(@PathVariable("directorId") int directorId) throws UnknownDirectorException {
+    public Director findDirectorById(@PathVariable("directorId") int directorId) throws EntityNotFoundException {
         log.info("GET /directors/" + directorId);
         return directorService.findById(directorId);
     }

@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
-import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.ArrayList;
@@ -22,14 +22,14 @@ public class GenreDaoImpl implements GenreDao {
     }
 
     @Override
-    public Optional<Genre> findGenreById(int id) throws UnknownGenreException {
+    public Optional<Genre> findGenreById(int id) throws EntityNotFoundException {
         SqlRowSet genreRows = jdbcTemplate.queryForRowSet("select * from genre where id = ?", id);
         if (genreRows.next()) {
             Genre genre = new Genre(genreRows.getString("genre_name"));
             genre.setId(id);
             return Optional.of(genre);
         } else {
-            throw new UnknownGenreException(String.format("Жанра с id=%d не существует", id));
+            throw new EntityNotFoundException(String.format("Жанра с id=%d не существует", id));
         }
     }
 

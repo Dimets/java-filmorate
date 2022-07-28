@@ -5,10 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FeedTypeDao;
-import ru.yandex.practicum.filmorate.exception.UnknownFeedTypeException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.FeedType;
-
-import java.util.Optional;
 
 @Component
 @Slf4j
@@ -19,14 +17,14 @@ public class FeedTypeDaoImpl implements FeedTypeDao {
         this.jdbcTemplate = jdbcTemplate;
     }
     @Override
-    public FeedType getFeedTypeByName(String type) throws UnknownFeedTypeException {
+    public FeedType getFeedTypeByName(String type) throws EntityNotFoundException {
         SqlRowSet feedTypeRow = jdbcTemplate.queryForRowSet("SELECT * FROM FEED_TYPE WHERE TYPE = ?", type);
         if (feedTypeRow.next()) {
             FeedType feedType = new FeedType(feedTypeRow.getString("type"));
             feedType.setId(feedTypeRow.getInt("id"));
             return feedType;
         } else {
-            throw new UnknownFeedTypeException(String.format("Тип события %s не найден", type));
+            throw new EntityNotFoundException(String.format("Тип события %s не найден", type));
         }
     }
 }

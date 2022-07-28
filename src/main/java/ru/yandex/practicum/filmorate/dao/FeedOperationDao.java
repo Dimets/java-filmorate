@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import ru.yandex.practicum.filmorate.exception.UnknownFeedOperationException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.FeedOperation;
 
-import java.util.Optional;
-
 public interface FeedOperationDao {
-    FeedOperation getFeedOperationByName(String operation) throws UnknownFeedOperationException;
+    FeedOperation getFeedOperationByOperationName(String operation) throws EntityNotFoundException;
 }

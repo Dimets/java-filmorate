@@ -44,20 +44,20 @@ public class UserService {
         return user;
     }
 
-    public User update(User user) throws ValidationException, UnknownUserException {
+    public User update(User user) throws ValidationException, EntityNotFoundException {
         validateUser(user);
-        userStorage.getUserById(user.getId()).orElseThrow(() -> new UnknownUserException(
+        userStorage.getUserById(user.getId()).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Пользователь с id=%d не существует", user.getId())));
 
         return userStorage.updateUser(user).get();
     }
 
-    public void deleteById(int id) throws UnknownUserException {
+    public void deleteById(int id) throws EntityNotFoundException {
         if (userStorage.getUserById(id) != null) {
             log.info(String.format("Пользователь с id=%d удален:", id) + userStorage.getUserById(id));
             userStorage.deleteUser(id);
         } else {
-            throw new UnknownUserException(String.format("Пользователь с id=%d не существует", id));
+            throw new EntityNotFoundException(String.format("Пользователь с id=%d не существует", id));
         }
     }
 
@@ -66,8 +66,8 @@ public class UserService {
         return userStorage.getAllUsers();
     }
 
-    public User findById(int id) throws UnknownUserException {
-        return userStorage.getUserById(id).orElseThrow(() -> new UnknownUserException(
+    public User findById(int id) throws EntityNotFoundException {
+        return userStorage.getUserById(id).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Пользователь с id=%d не существует", id)));
     }
 
@@ -86,7 +86,7 @@ public class UserService {
         }
     }
 
-    public void addFriend(int userId, int friendId) throws UnknownUserException, FriendException {
+    public void addFriend(int userId, int friendId) throws EntityNotFoundException, FriendException {
         checkExistUserAndFriend(userId, friendId);
         if (getUserFriends(userId).contains(friendId)) {
             throw new FriendException((String.format("Пользователь с id=%d уже есть в списке друзей пользователя" +
@@ -98,7 +98,7 @@ public class UserService {
         log.info(String.format("Пользователь с id=%d добавлен в друзья к пользователю с id=%d:", friendId, userId));
     }
 
-    public void deleteFriend(int userId, int friendId) throws UnknownUserException, FriendException {
+    public void deleteFriend(int userId, int friendId) throws EntityNotFoundException, FriendException {
         checkExistUserAndFriend(userId, friendId);
         if (friendDao.getUserFriends(userId).contains(friendId)) {
             friendDao.deleteFriend(userId, friendId);
@@ -113,10 +113,10 @@ public class UserService {
         }
     }
 
-    public List<User> getUserFriends(int userId) throws UnknownUserException {
+    public List<User> getUserFriends(int userId) throws EntityNotFoundException {
         List<User> userFriends = new ArrayList<>();
         if (userStorage.getUserById(userId).isEmpty()) {
-            throw new UnknownUserException(String.format("Пользователь с id=%d отсутствует", userId));
+            throw new EntityNotFoundException(String.format("Пользователь с id=%d отсутствует", userId));
         }
         for (int i : friendDao.getUserFriends(userId)) {
             userFriends.add(findById(i));
@@ -125,23 +125,22 @@ public class UserService {
         return userFriends;
     }
 
-    public List<User> getCommonFriends(int userId, int otherUserId) throws UnknownUserException {
+    public List<User> getCommonFriends(int userId, int otherUserId) throws EntityNotFoundException {
         List<User> result = new ArrayList<>();
         result.addAll(getUserFriends(userId));
         result.retainAll(getUserFriends(otherUserId));
         return result;
     }
 
-    public void checkExistUserAndFriend(int userId, int friendId) throws UnknownUserException {
-        userStorage.getUserById(userId).orElseThrow(() -> new UnknownUserException(
+    public void checkExistUserAndFriend(int userId, int friendId) throws EntityNotFoundException {
+        userStorage.getUserById(userId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Пользователь с id=%d не существует", userId)));
 
-        userStorage.getUserById(friendId).orElseThrow(() -> new UnknownUserException(
+        userStorage.getUserById(friendId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Пользователь с id=%d не существует", friendId)));
     }
 
-    public List<Film> getRecommendations(int id) throws UnknownUserException, UnknownMpaException, UnknownGenreException,
-            UnknownDirectorException, UnknownFilmException {
+    public List<Film> getRecommendations(int id) throws EntityNotFoundException {
 
         User user = findById(id);
         List<Film> userListFilm = filmService.getUserFilms(id);
@@ -180,7 +179,7 @@ public class UserService {
         return recommendation;
     }
 
-    public List<Feed> getFeeds(int userId) throws UnknownFeedTypeException, UnknownFeedOperationException {
+    public List<Feed> getFeeds(int userId) throws EntityNotFoundException {
         return feedDao.getFeedByUser(userId);
     }
 

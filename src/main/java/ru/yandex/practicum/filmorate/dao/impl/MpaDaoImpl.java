@@ -5,8 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
-import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
-import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.ArrayList;
@@ -23,14 +22,14 @@ public class MpaDaoImpl implements MpaDao {
     }
 
     @Override
-    public Optional<Mpa> findMpaById(int id) throws UnknownMpaException {
+    public Optional<Mpa> findMpaById(int id) throws EntityNotFoundException {
         SqlRowSet mpaRows = jdbcTemplate.queryForRowSet("select * from rating_mpa where id = ?", id);
         if (mpaRows.next()) {
             Mpa mpa = new Mpa(mpaRows.getString("rating_name"));
             mpa.setId(id);
             return Optional.of(mpa);
         } else {
-            throw new UnknownMpaException(String.format("Рейтинга MPA с id=%d не существует", id));
+            throw new EntityNotFoundException(String.format("Рейтинга MPA с id=%d не существует", id));
         }
     }
 

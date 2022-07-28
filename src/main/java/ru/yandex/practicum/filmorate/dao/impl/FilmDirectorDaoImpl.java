@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FilmDirectorDao;
-import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.DirectorService;
@@ -25,7 +25,7 @@ public class FilmDirectorDaoImpl implements FilmDirectorDao {
     }
 
     @Override
-    public Set<Director> getFilmDirectors(int id) throws UnknownDirectorException {
+    public Set<Director> getFilmDirectors(int id) throws EntityNotFoundException {
         SqlRowSet filmDirectorsRows = jdbcTemplate.queryForRowSet("select * from film_director where film_id = ?", id);
         Set<Director> filmDirectorSet = new TreeSet<>();
 

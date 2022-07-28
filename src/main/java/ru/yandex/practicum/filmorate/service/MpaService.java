@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
-import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.List;
@@ -18,9 +18,9 @@ public class MpaService  {
         this.mpaDao = mpaDao;
     }
 
-    public Optional<Mpa> findById(int id) throws UnknownMpaException {
+    public Optional<Mpa> findById(int id) throws EntityNotFoundException {
         if (mpaDao.findMpaById(id).isEmpty()) {
-            throw new UnknownMpaException(String.format("Рейтинг MPA с id=%d не существует", id));
+            throw new EntityNotFoundException(String.format("Рейтинг MPA с id=%d не существует", id));
         }
         return mpaDao.findMpaById(id);
     }

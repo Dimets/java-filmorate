@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.ReviewDao;
-import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
-import ru.yandex.practicum.filmorate.exception.UnknownReviewException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
@@ -24,13 +21,13 @@ public class ReviewService {
     }
 
 
-    public Review createReview(Review review) throws ValidationException, UnknownFilmException, UnknownUserException {
+    public Review createReview(Review review) throws ValidationException, EntityNotFoundException {
         validationReview(review);
         return reviewDao.createReview(review);
     }
 
 
-    public Review updateReview(Review review) throws ValidationException, UnknownFilmException, UnknownUserException {
+    public Review updateReview(Review review) throws ValidationException, EntityNotFoundException {
         validationReview(review);
         reviewDao.updateReview(review);
         return getReviewById(review.getReviewId());
@@ -42,11 +39,11 @@ public class ReviewService {
     }
 
 
-    public Review getReviewById(long id) {
+    public Review getReviewById(long id) throws EntityNotFoundException {
         try {
             return reviewDao.getReviewById(id);
         } catch (EmptyResultDataAccessException e) {
-            throw new UnknownReviewException(String.format("idReview=%d is missing in the database", id));
+            throw new EntityNotFoundException(String.format("idReview=%d is missing in the database", id));
         }
     }
 
@@ -82,7 +79,7 @@ public class ReviewService {
         return reviewDao.getReviewByIdFilm(filmId, count);
     }
 
-    private void validationReview(Review review) throws ValidationException, UnknownUserException, UnknownFilmException {
+    private void validationReview(Review review) throws ValidationException, EntityNotFoundException {
         if (review.getFilmId() == 0)
             throw new ValidationException("not set filmId");
 
@@ -93,10 +90,10 @@ public class ReviewService {
             throw new ValidationException("not set isPositive");
 
         if (review.getUserId() < 0)
-            throw new UnknownUserException(String.format("userId=%d is incorrect", review.getUserId()));
+            throw new EntityNotFoundException(String.format("userId=%d is incorrect", review.getUserId()));
 
         if (review.getFilmId() < 0)
-            throw new UnknownFilmException(String.format("filmId=%d is incorrect", review.getFilmId()));
+            throw new EntityNotFoundException(String.format("filmId=%d is incorrect", review.getFilmId()));
 
     }
 }

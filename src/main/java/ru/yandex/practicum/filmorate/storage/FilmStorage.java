@@ -1,34 +1,30 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
-import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
-import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface FilmStorage {
-    Film createFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    Film createFilm(Film film) throws EntityNotFoundException;
 
-    Film updateFilm(Film film) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    Film updateFilm(Film film) throws EntityNotFoundException;
 
     void deleteFilm(int id);
 
-    List<Film> searchFilmByDirector(String query) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    List<Film> searchFilmByDirector(String query) throws EntityNotFoundException;
 
-    List<Film> searchFilmByTitle(String query) throws UnknownMpaException,
-            UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    List<Film> searchFilmByTitle(String query) throws EntityNotFoundException;
 
-    Optional<Film> getFilmById(int id) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    Optional<Film> getFilmById(int id) throws EntityNotFoundException;
 
-    List<Film> getAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    List<Film> getAllFilms() throws EntityNotFoundException;
 
-    List<Film> getPopular(int count) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    List<Film> getPopular(int count) throws EntityNotFoundException;
 
-    List<Film> getPopularByDirector(int id, String sortBy) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    List<Film> getPopularByDirector(int id, String sortBy) throws EntityNotFoundException;
 
-    List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year) throws UnknownMpaException, UnknownGenreException, UnknownUserException, UnknownDirectorException;
+    List<Film> getPopular(Integer count, Optional<Integer> genreId, Optional<Integer> year)
+            throws EntityNotFoundException;
 }
