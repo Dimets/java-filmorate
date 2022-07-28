@@ -8,4 +8,5 @@ public interface FilmLikeDao {
     void addFilmLike(int filmId, int userId);
 
     void deleteFilmLike(int filmId, int userId);
+    Set<Integer> getUserLikes(int userId);
 }

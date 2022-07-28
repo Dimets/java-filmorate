@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Component("userDbStorage")
 public class UserDbStorage implements UserStorage {
-    private  final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -43,12 +43,12 @@ public class UserDbStorage implements UserStorage {
     @Override
     public Optional<User> updateUser(User user) {
         String sqlQuery = "update users set email = ?, login = ?, name = ?, birthday = ?  where id = ?";
-            jdbcTemplate.update(sqlQuery
-                    , user.getEmail()
-                    , user.getLogin()
-                    , user.getName()
-                    , user.getBirthday()
-                    , user.getId());
+        jdbcTemplate.update(sqlQuery
+                , user.getEmail()
+                , user.getLogin()
+                , user.getName()
+                , user.getBirthday()
+                , user.getId());
         return getUserById(user.getId());
     }
 
