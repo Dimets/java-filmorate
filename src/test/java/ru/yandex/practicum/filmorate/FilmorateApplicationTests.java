@@ -9,10 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.dao.impl.FilmDbStorage;
 import ru.yandex.practicum.filmorate.dao.impl.UserDbStorage;
-import ru.yandex.practicum.filmorate.exception.UnknownDirectorException;
-import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
-import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
 
 import java.time.LocalDate;
@@ -93,8 +90,7 @@ class FilmoRateApplicationTests {
 	}
 
 	@Test
-	public void testGetFilmById() throws UnknownMpaException, UnknownGenreException, UnknownUserException,
-			UnknownDirectorException {
+	public void testGetFilmById() throws EntityNotFoundException {
 		Optional<Film> filmOptional = filmStorage.getFilmById(1);
 
 		assertThat(filmOptional)
@@ -105,16 +101,14 @@ class FilmoRateApplicationTests {
 	}
 
 	@Test
-	public void testGetAllFilms() throws UnknownMpaException, UnknownGenreException, UnknownUserException,
-			UnknownDirectorException {
+	public void testGetAllFilms() throws EntityNotFoundException {
 		List<Film> films = filmStorage.getAllFilms();
 		Assertions.assertEquals(3, films.size());
 
 	}
 
 	@Test
-	public void testCreateFilm() throws UnknownMpaException, UnknownGenreException, UnknownUserException,
-			UnknownDirectorException {
+	public void testCreateFilm() throws EntityNotFoundException {
 		Genre genre = genreDao.findGenreById(1).get();
 		Film film = new Film("New film", "New desc", mpaDao.findMpaById(1).get(),
 				LocalDate.now().minusYears(10),100, 1, Set.of(genre),
@@ -128,8 +122,7 @@ class FilmoRateApplicationTests {
 	}
 
 	@Test
-	public void testUpdateFilm() throws UnknownMpaException, UnknownGenreException, UnknownUserException,
-			UnknownDirectorException {
+	public void testUpdateFilm() throws EntityNotFoundException {
 		Optional<Film> optionalFilm = filmStorage.getFilmById(1);
 		Genre genre = genreDao.findGenreById(1).get();
 		Film updatedFilm = new Film("Updated film", "New desc", mpaDao.findMpaById(1).get(),
@@ -144,15 +137,14 @@ class FilmoRateApplicationTests {
 	}
 
 	@Test
-	public void testDeleteFilm() throws UnknownMpaException, UnknownGenreException, UnknownUserException,
-			UnknownDirectorException {
+	public void testDeleteFilm() throws EntityNotFoundException {
 		int filmsCount = filmStorage.getAllFilms().size();
 		filmStorage.deleteFilm(1);
 		Assertions.assertEquals(filmsCount - 1, filmStorage.getAllFilms().size());
 	}
 
 	@Test
-	public void testFindGenreById() throws UnknownGenreException {
+	public void testFindGenreById() throws EntityNotFoundException {
 		Optional<Genre> genreOptional = genreDao.findGenreById(1);
 
 		assertThat(genreOptional)
@@ -173,7 +165,7 @@ class FilmoRateApplicationTests {
 	}
 
 	@Test
-	public void testFindMpaById() throws UnknownMpaException {
+	public void testFindMpaById() throws EntityNotFoundException {
 		Optional<Mpa> mpaOptional = mpaDao.findMpaById(1);
 
 		assertThat(mpaOptional)
@@ -184,21 +176,19 @@ class FilmoRateApplicationTests {
 	}
 
 	@Test
-	public void testGetFilmGenre() throws UnknownGenreException {
+	public void testGetFilmGenre() throws EntityNotFoundException {
 		Assertions.assertEquals(2, filmGenreDao.getFilmGenres(2).size());
 	}
 
 	@Test
-	public void testDeleteFilmGenre() throws UnknownMpaException, UnknownGenreException, UnknownUserException,
-			UnknownDirectorException {
+	public void testDeleteFilmGenre() throws EntityNotFoundException {
 		Optional<Film> film = filmStorage.getFilmById(1);
 		filmGenreDao.deleteFilmGenres(film.get());
 		Assertions.assertEquals(0, filmGenreDao.getFilmGenres(1).size());
 	}
 
 	@Test
-	public void testSetFilmGenre() throws UnknownMpaException, UnknownGenreException, UnknownUserException,
-			UnknownDirectorException {
+	public void testSetFilmGenre() throws EntityNotFoundException {
 		Optional<Film> film = filmStorage.getFilmById(2);
 		Set<Genre> genres = filmGenreDao.getFilmGenres(2);
 
