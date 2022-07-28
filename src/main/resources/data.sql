@@ -25,7 +25,7 @@ insert into FEED_OPERATION(OPERATION) values ('REMOVE');
 insert into FEED_OPERATION(OPERATION) values ('ADD');
 insert into FEED_OPERATION(OPERATION) values ('UPDATE');
 
-/*
+
 insert into FILM (NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, RATING_MPA_ID)
 values ('The Mask', 'Mask film description', '1994-07-29', 101, 4, 3);
 insert into FILM (NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, RATING_MPA_ID)
@@ -78,4 +78,5 @@ insert into FRIENDS (USER_ID, FRIEND_ID, STATUS_ID)
 values (4, 3, 2);
 insert into FRIENDS (USER_ID, FRIEND_ID, STATUS_ID)
 values (5, 2, 2);
-*/
+
+insert into DIRECTOR (DIRECTOR_NAME) values ('test director');

@@ -31,6 +31,8 @@ class FilmoRateApplicationTests {
 	private final FilmLikeDao filmLikeDao;
 	private final FriendDao friendDao;
 
+	private final DirectorDao directorDao;
+
 	@Test
 	public void testFindUserById() {
 		Optional<User> userOptional = userStorage.getUserById(1);
@@ -110,9 +112,10 @@ class FilmoRateApplicationTests {
 	@Test
 	public void testCreateFilm() throws EntityNotFoundException {
 		Genre genre = genreDao.findGenreById(1).get();
+		Director director = directorDao.getDirectorById(1).get();
 		Film film = new Film("New film", "New desc", mpaDao.findMpaById(1).get(),
 				LocalDate.now().minusYears(10),100, 1, Set.of(genre),
-				Set.of(new Director("test director")));
+				Set.of(director));
 
 		Film createdFilm = filmStorage.createFilm(film);
 
@@ -125,9 +128,10 @@ class FilmoRateApplicationTests {
 	public void testUpdateFilm() throws EntityNotFoundException {
 		Optional<Film> optionalFilm = filmStorage.getFilmById(1);
 		Genre genre = genreDao.findGenreById(1).get();
+		Director director = directorDao.getDirectorById(1).get();
 		Film updatedFilm = new Film("Updated film", "New desc", mpaDao.findMpaById(1).get(),
 				LocalDate.now().minusYears(10),100, 1, Set.of(genre),
-				Set.of(new Director("test director")));
+				Set.of(director));
 		updatedFilm.setId(1);
 
 		Film updateFilm =filmStorage.updateFilm(updatedFilm);
